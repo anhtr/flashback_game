@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashback Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Flashback Game</h1>
+    <p>Drag and drop the events into the correct chronological order.</p>
+    <div class="container">
+        <h2>Ordered Timeline</h2>
+        <div id="ordered-timeline" class="timeline">
+            <div class="event" data-year="1776">American Independence (1776)</div>
+        </div>
+        <h2>Unsorted Events</h2>
+        <div id="unsorted-events" class="timeline">
+            <div class="event" draggable="true" data-year="1969">Moon Landing (1969)</div>
+            <div class="event" draggable="true" data-year="2001">9/11 Attacks (2001)</div>
+            <div class="event" draggable="true" data-year="1914">World War I Begins (1914)</div>
+        </div>
+        <button onclick="checkOrder()">Check Order</button>
+    </div>
+    <p id="result"></p>
+    <script src="script.js"></script>
+</body>
+</html>
