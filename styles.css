@@ -32,3 +32,6 @@ body {
     background: rgba(0, 0, 0, 0.1);
     border: 1px dashed #333;
 }
+.hidden {
+    display: none;
+}
