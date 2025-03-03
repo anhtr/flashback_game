@@ -37,23 +37,32 @@ document.querySelectorAll('.timeline').forEach(timeline => {
 let playerScore = 0;
 const totalPossibleScore = document.querySelectorAll('.event').length;
 
+// Helper function to format date without timezone adjustments.
+function formatDate(dateString) {
+    // dateString is in the format "YYYY-MM-DD"
+    const [year, month, day] = dateString.split("-");
+    return `${month}/${day}/${year}`;
+}
+
 function checkLastDroppedOrder(draggedEvent) {
-    // Reveal the correct year in parentheses
+    // Reveal the correct date in parentheses using our custom format function.
     let yearElement = draggedEvent.querySelector('.event-year');
     if (yearElement) {
-        yearElement.textContent = "(" + draggedEvent.dataset.year + ")";
+        yearElement.textContent = "(" + formatDate(draggedEvent.dataset.date) + ")";
         yearElement.classList.remove('hidden');
     }
 
     let targetTimeline = document.querySelector('#ordered-timeline');
     // Get all events in the timeline (current order)
     let allEvents = Array.from(targetTimeline.querySelectorAll('.event'));
-    let draggedYear = parseInt(draggedEvent.dataset.year);
+    // Use timestamp for comparison (this still uses Date objects)
+    let draggedTime = new Date(draggedEvent.dataset.date).getTime();
     
-    // Determine the correct index by counting events (excluding draggedEvent) with a lower year.
+    // Determine the correct index by counting events (excluding draggedEvent) with an earlier date.
     let otherEvents = allEvents.filter(e => e !== draggedEvent);
     let correctIndex = otherEvents.reduce((count, e) => {
-        return count + (parseInt(e.dataset.year) < draggedYear ? 1 : 0);
+        let eTime = new Date(e.dataset.date).getTime();
+        return count + (eTime < draggedTime ? 1 : 0);
     }, 0);
     
     // Get the current index of the dragged event.
