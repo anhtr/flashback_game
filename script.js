@@ -115,6 +115,11 @@ function addEvent() {
 // Attach drag event listeners
 function addDragListeners(event) {
     event.addEventListener('dragstart', (e) => {
+        if (event.classList.contains("dropped")) {
+            e.preventDefault(); // Prevent drag if already dropped
+            return;
+        }
+        
         draggedItem = event;
         setTimeout(() => event.style.display = "none", 0);
     });
@@ -122,14 +127,34 @@ function addDragListeners(event) {
     event.addEventListener('dragend', (e) => {
         draggedItem.style.display = "block";
         placeholder.remove();
-        checkLastDroppedOrder(draggedItem);
+
+        // Check if the event was dropped into the ordered timeline
+        const droppedInOrderedTimeline = document.querySelector('#ordered-timeline').contains(draggedItem);
+
+        if (!droppedInOrderedTimeline) {
+            // If not, move it back to the unsorted list
+            const unsortedEventsContainer = document.getElementById('unsorted-events');
+            unsortedEventsContainer.appendChild(draggedItem);
+            // Reset any changes made during the drag (like hiding the remove button)
+            let removeButton = draggedItem.querySelector(".remove-button");
+            if (removeButton) removeButton.style.display = "block";
+            let eventDate = draggedItem.querySelector(".event-Date");
+            if (eventDate) {
+                eventDate.classList.add("hidden");
+            }
+        } else {
+            // Mark the event as dropped and disable dragging
+            draggedItem.classList.add("dropped");
+            draggedItem.draggable = false;
+            checkLastDroppedOrder(draggedItem);
+        }
 
         // Disable remove button and reveal the date after being placed in ordered list
-        if (event.parentNode.id === "ordered-timeline") {
-            let removeButton = event.querySelector(".remove-button");
+        if (draggedItem.parentNode.id === "ordered-timeline") {
+            let removeButton = draggedItem.querySelector(".remove-button");
             if (removeButton) removeButton.style.display = "none"; // Hide the remove button
 
-            let eventDate = event.querySelector(".event-Date");
+            let eventDate = draggedItem.querySelector(".event-Date");
             if (eventDate) {
                 eventDate.classList.remove("hidden"); // Show the date
             }
