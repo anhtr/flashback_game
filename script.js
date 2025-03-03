@@ -38,8 +38,15 @@ let playerScore = 0;
 const totalPossibleScore = document.querySelectorAll('.event').length;
 
 function checkLastDroppedOrder(draggedEvent) {
+    // Reveal the correct year in parentheses
+    let yearElement = draggedEvent.querySelector('.event-year');
+    if (yearElement) {
+        yearElement.textContent = "(" + draggedEvent.dataset.year + ")";
+        yearElement.classList.remove('hidden');
+    }
+
     let targetTimeline = document.querySelector('#ordered-timeline');
-    // Get all events currently in the timeline (in order)
+    // Get all events in the timeline (current order)
     let allEvents = Array.from(targetTimeline.querySelectorAll('.event'));
     let draggedYear = parseInt(draggedEvent.dataset.year);
     
