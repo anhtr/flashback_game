@@ -19,16 +19,26 @@ document.querySelectorAll('.timeline').forEach(timeline => {
     timeline.addEventListener('dragover', (e) => {
         e.preventDefault();
         let target = e.target.closest('.event');
-        if (target) {
+        let timelineRect = timeline.getBoundingClientRect();
+        let mouseY = e.clientY;
+
+        // If hovering over an event, insert the placeholder before it
+        if (target && target !== placeholder) {
             target.parentNode.insertBefore(placeholder, target);
-        } else if (timeline.id === 'ordered-timeline' && !timeline.contains(placeholder)) {
-            timeline.appendChild(placeholder);
+        } 
+        // If hovering near the bottom of the timeline, place placeholder at the end
+        else if (!target && mouseY > timelineRect.bottom - 20) {
+            if (timeline.lastElementChild !== placeholder) {
+                timeline.appendChild(placeholder);
+            }
         }
     });
+
     timeline.addEventListener('drop', (e) => {
         e.preventDefault();
         if (draggedItem) {
             timeline.insertBefore(draggedItem, placeholder);
+            placeholder.remove(); // Clean up placeholder after drop
         }
     });
 });
