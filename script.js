@@ -33,47 +33,39 @@ document.querySelectorAll('.timeline').forEach(timeline => {
     });
 });
 
-function checkLastDroppedOrder(event) {
-    let year = parseInt(event.dataset.year); // Get the year of the dropped event
-    let yearElement = event.querySelector('.event-year');
-    
-    // Get all events in the ordered timeline
+function checkLastDroppedOrder(draggedEvent) {
     let targetTimeline = document.querySelector('#ordered-timeline');
-    let events = Array.from(targetTimeline.querySelectorAll('.event'));
+    // Get all events in the timeline (in current order)
+    let allEvents = Array.from(targetTimeline.querySelectorAll('.event'));
     
-    // Sort the events by their years
-    let years = events.map(e => parseInt(e.dataset.year));
-    let sortedYears = [...years].sort((a, b) => a - b);
+    // Determine the correct index by counting events with a lower year.
+    let draggedYear = parseInt(draggedEvent.dataset.year);
+    let otherEvents = allEvents.filter(e => e !== draggedEvent);
+    let correctIndex = otherEvents.reduce((count, e) => {
+        return count + (parseInt(e.dataset.year) < draggedYear ? 1 : 0);
+    }, 0);
     
-    // Find the correct position based on sorted years
-    let indexInSorted = sortedYears.indexOf(year);
+    // Get the current index of the dragged event.
+    let currentIndex = allEvents.indexOf(draggedEvent);
     
-    // Check if the event is correctly placed
-    let isCorrect = years.indexOf(year) === indexInSorted;
-
-    // Update the event’s class based on correctness
-    if (yearElement) {
-        yearElement.classList.remove('hidden');
-    }
-
-    if (isCorrect) {
-        event.classList.add('correct');
-        event.classList.remove('incorrect');
-    } else {
-        event.classList.add('incorrect');
-        event.classList.remove('correct');
-
-        // Move the event to the correct position if it's wrong
-        let correctPosition = targetTimeline.querySelectorAll('.event')[indexInSorted];
+    if (currentIndex !== correctIndex) {
+        // Move the dragged event to the correct position.
+        // We refresh the list to avoid including the draggedEvent.
+        let remainingEvents = Array.from(targetTimeline.querySelectorAll('.event')).filter(e => e !== draggedEvent);
+        let correctPosition = remainingEvents[correctIndex];
         if (correctPosition) {
-            // Move the event to the correct position (preserving its properties)
-            correctPosition.parentNode.insertBefore(event, correctPosition);
+            targetTimeline.insertBefore(draggedEvent, correctPosition);
         } else {
-            // If it's the last position, append to the end
-            targetTimeline.appendChild(event);
+            targetTimeline.appendChild(draggedEvent);
         }
+        // Optionally, you can inform the user that the event was out of order.
+        draggedEvent.classList.remove('incorrect'); // clear previous state if any
+        draggedEvent.classList.add('correct');
+        document.getElementById('result').innerText = "Incorrect order, but corrected!";
+    } else {
+        draggedEvent.classList.add('correct');
+        draggedEvent.classList.remove('incorrect');
+        document.getElementById('result').innerText = "Correct order!";
     }
-
-    // Show the result message
-    document.getElementById('result').innerText = isCorrect ? "Correct order!" : "Incorrect order, keep trying!";
 }
+
