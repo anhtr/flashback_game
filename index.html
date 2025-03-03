@@ -13,26 +13,13 @@
         <h2>Ordered Timeline</h2>
         <div id="ordered-timeline" class="timeline"></div>
         <h2>Unsorted Events</h2>
-        <div id="unsorted-events" class="timeline">
-            <div class="event" draggable="true" data-date="1776-07-04">
-                <span class="event-text">American Independence</span>
-                <span class="event-year hidden">(07/04/1776)</span>
-            </div>
-            <div class="event" draggable="true" data-date="1969-07-20">
-                <span class="event-text">Moon Landing</span>
-                <span class="event-year hidden">(07/20/1969)</span>
-            </div>
-            <div class="event" draggable="true" data-date="2001-09-11">
-                <span class="event-text">9/11 Attacks</span>
-                <span class="event-year hidden">(09/11/2001)</span>
-            </div>
-            <div class="event" draggable="true" data-date="1914-07-28">
-                <span class="event-text">World War I Begins</span>
-                <span class="event-year hidden">(07/28/1914)</span>
-            </div>
-        </div>
+        <div id="unsorted-events" class="timeline"></div>
     </div>
     <p id="result"></p>
+    <h2>Add a New Event</h2>
+        <input type="text" id="event-name" placeholder="Event Name">
+        <input type="date" id="event-date">
+        <button onclick="addEvent()">Add Event</button>
     <script src="script.js"></script>
 </body>
 </html>
