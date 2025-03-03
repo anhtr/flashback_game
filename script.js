@@ -33,9 +33,13 @@ document.querySelectorAll('.timeline').forEach(timeline => {
     });
 });
 
+// Global score variables
+let playerScore = 0;
+const totalPossibleScore = document.querySelectorAll('.event').length;
+
 function checkLastDroppedOrder(draggedEvent) {
     let targetTimeline = document.querySelector('#ordered-timeline');
-    // Get all events in the timeline (current order)
+    // Get all events currently in the timeline (in order)
     let allEvents = Array.from(targetTimeline.querySelectorAll('.event'));
     let draggedYear = parseInt(draggedEvent.dataset.year);
     
@@ -48,18 +52,17 @@ function checkLastDroppedOrder(draggedEvent) {
     // Get the current index of the dragged event.
     let currentIndex = allEvents.indexOf(draggedEvent);
     
-    // If the event hasn't been answered before, decide its color.
+    // Only set the initial answer once.
     if (!draggedEvent.dataset.initialAnswer) {
         if (currentIndex === correctIndex) {
             draggedEvent.classList.add('correct');
             draggedEvent.classList.remove('incorrect');
             draggedEvent.dataset.initialAnswer = 'correct';
-            document.getElementById('result').innerText = "Correct order!";
+            playerScore++; // increment score for a correct initial drop
         } else {
             draggedEvent.classList.add('incorrect');
             draggedEvent.classList.remove('correct');
             draggedEvent.dataset.initialAnswer = 'incorrect';
-            document.getElementById('result').innerText = "Incorrect order, keep trying!";
             
             // Auto-correct the position for incorrect events.
             let remainingEvents = Array.from(targetTimeline.querySelectorAll('.event')).filter(e => e !== draggedEvent);
@@ -71,7 +74,7 @@ function checkLastDroppedOrder(draggedEvent) {
             }
         }
     } else {
-        // If already answered, reposition without changing its color.
+        // If already answered, simply reposition without changing its color.
         let remainingEvents = Array.from(targetTimeline.querySelectorAll('.event')).filter(e => e !== draggedEvent);
         let correctPosition = remainingEvents[correctIndex];
         if (correctPosition) {
@@ -80,5 +83,7 @@ function checkLastDroppedOrder(draggedEvent) {
             targetTimeline.appendChild(draggedEvent);
         }
     }
+    
+    // Update the score display (using the element with id "result")
+    document.getElementById('result').innerText = "Score: " + playerScore + "/" + totalPossibleScore;
 }
-
