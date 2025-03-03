@@ -1,20 +1,68 @@
+const eventsData = [
+    { name: "American Independence", date: "1776-07-04" },
+    { name: "Moon Landing", date: "1969-07-20" },
+    { name: "9/11 Attacks", date: "2001-09-11" },
+    { name: "World War I Begins", date: "1914-07-28" }
+];
+
+// Global score variables
+let playerScore = 0;
+let totalPossibleScore = 0;
+
 let draggedItem = null;
 let placeholder = document.createElement('div');
 placeholder.classList.add('placeholder');
 
-document.querySelectorAll('.event').forEach(event => {
+// Function to create and add events dynamically
+function loadEvents() {
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+
+    eventsData.forEach(event => {
+        let eventElement = document.createElement("div");
+        eventElement.classList.add("event");
+        eventElement.draggable = true;
+        eventElement.dataset.date = event.date; // Store full date as dataset
+
+        // Create inner span for event text
+        let eventText = document.createElement("span");
+        eventText.classList.add("event-text");
+        eventText.textContent = event.name;
+
+        // Create hidden span for the date
+        let eventYear = document.createElement("span");
+        eventYear.classList.add("event-year", "hidden");
+        eventYear.textContent = ` (${event.date})`; // Show full date in parentheses
+
+        // Append to event element
+        eventElement.appendChild(eventText);
+        eventElement.appendChild(eventYear);
+        unsortedEventsContainer.appendChild(eventElement);
+
+        // Attach drag event listeners
+        addDragListeners(eventElement);
+    });
+
+    // Set total possible score
+    totalPossibleScore = eventsData.length;
+    updateScoreDisplay();
+}
+
+// Attach drag event listeners
+function addDragListeners(event) {
     event.addEventListener('dragstart', (e) => {
         draggedItem = event;
         setTimeout(() => event.style.display = "none", 0);
     });
+
     event.addEventListener('dragend', (e) => {
         draggedItem.style.display = "block";
         placeholder.remove();
         // Only check the last dropped event
         checkLastDroppedOrder(draggedItem);
     });
-});
+}
 
+// Attach timeline event listeners
 document.querySelectorAll('.timeline').forEach(timeline => {
     timeline.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -43,10 +91,6 @@ document.querySelectorAll('.timeline').forEach(timeline => {
     });
 });
 
-// Global score variables
-let playerScore = 0;
-const totalPossibleScore = document.querySelectorAll('.event').length;
-
 // Helper function to format date without timezone adjustments.
 function formatDate(dateString) {
     // dateString is in the format "YYYY-MM-DD"
@@ -58,7 +102,7 @@ function checkLastDroppedOrder(draggedEvent) {
     // Reveal the correct date in parentheses using our custom format function.
     let yearElement = draggedEvent.querySelector('.event-year');
     if (yearElement) {
-        yearElement.textContent = "(" + formatDate(draggedEvent.dataset.date) + ")";
+        yearElement.textContent = " (" + formatDate(draggedEvent.dataset.date) + ")";
         yearElement.classList.remove('hidden');
     }
 
@@ -110,6 +154,14 @@ function checkLastDroppedOrder(draggedEvent) {
         }
     }
     
-    // Update the score display (using the element with id "result")
-    document.getElementById('result').innerText = "Score: " + playerScore + "/" + totalPossibleScore;
+    // Update the score display
+    updateScoreDisplay();
 }
+
+// Update the score display
+function updateScoreDisplay() {
+    document.getElementById('result').innerText = `Score: ${playerScore}/${totalPossibleScore}`;
+}
+
+// Load events when the page loads
+document.addEventListener("DOMContentLoaded", loadEvents);
