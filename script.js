@@ -1,26 +1,26 @@
-const eventsData = [
-    { name: "American Independence", date: "1776-07-04" },
-    { name: "Moon Landing", date: "1969-07-20" },
-    { name: "9/11 Attacks", date: "2001-09-11" },
-    { name: "World War I Begins", date: "1914-07-28" }
-];
-
 let playerScore = 0;
 let totalPossibleScore = 0;
 let draggedItem = null;
 let placeholder = document.createElement('div');
+let eventsData = [];
 placeholder.classList.add('placeholder');
 
 // Function to create and add events dynamically
 function loadEvents() {
-    const unsortedEventsContainer = document.getElementById("unsorted-events");
-    unsortedEventsContainer.innerHTML = ""; // Clear existing events
+    fetch('events.json')
+        .then(response => response.json())
+        .then(data => {
+            eventsData.length = 0; // Clear existing array
+            eventsData.push(...data); // Load new data
+            const unsortedEventsContainer = document.getElementById("unsorted-events");
+            unsortedEventsContainer.innerHTML = ""; // Clear existing events
+            eventsData.forEach(event => createEventElement(event, unsortedEventsContainer));
 
-    eventsData.forEach(event => createEventElement(event, unsortedEventsContainer));
-
-    // Set total possible score
-    totalPossibleScore = eventsData.length;
-    updateScoreDisplay();
+            // Set total possible score
+            totalPossibleScore = eventsData.length;
+            updateScoreDisplay();
+        })
+        .catch(error => console.error("Error loading events:", error));
 }
 
 // Function to create an event element
