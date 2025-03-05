@@ -12,16 +12,40 @@ function loadEvents() {
         .then(data => {
             eventsData.length = 0; // Clear existing array
             eventsData.push(...data); // Load new data
+
+            // Load the initial random events
+            const randomEvents = shuffleArray(eventsData).slice(0, 7);
+
             const unsortedEventsContainer = document.getElementById("unsorted-events");
             unsortedEventsContainer.innerHTML = ""; // Clear existing events
-            eventsData.forEach(event => createEventElement(event, unsortedEventsContainer));
+            randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
-            // Set total possible score
-            totalPossibleScore = eventsData.length;
+            // Set total possible score to 7
+            totalPossibleScore = 7;
             updateScoreDisplay();
         })
         .catch(error => console.error("Error loading events:", error));
 }
+
+// Function to shuffle the array (Fisher-Yates algorithm)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+    return array;
+}
+
+// Function to randomize events on button click
+function randomizeEvents() {
+    const randomEvents = shuffleArray(eventsData).slice(0, 7);
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    unsortedEventsContainer.innerHTML = ""; // Clear existing events
+    randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+}
+
+// Add event listener to Randomize button
+document.getElementById("randomize-btn").addEventListener("click", randomizeEvents);
 
 // Function to create an event element
 function createEventElement(event, container) {
