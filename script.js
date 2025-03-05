@@ -1,27 +1,76 @@
-const eventsData = [
-    { name: "American Independence", date: "1776-07-04" },
-    { name: "Moon Landing", date: "1969-07-20" },
-    { name: "9/11 Attacks", date: "2001-09-11" },
-    { name: "World War I Begins", date: "1914-07-28" }
-];
-
 let playerScore = 0;
 let totalPossibleScore = 0;
 let draggedItem = null;
 let placeholder = document.createElement('div');
+let eventsData = [];
 placeholder.classList.add('placeholder');
 
 // Function to create and add events dynamically
 function loadEvents() {
+    fetch('events.json')
+        .then(response => response.json())
+        .then(data => {
+            eventsData.length = 0; // Clear existing array
+            eventsData.push(...data); // Load new data
+
+            // Load the initial random events
+            const randomEvents = shuffleArray(eventsData).slice(0, 7);
+
+            const unsortedEventsContainer = document.getElementById("unsorted-events");
+            unsortedEventsContainer.innerHTML = ""; // Clear existing events
+            randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+
+            // Set total possible score to 7
+            totalPossibleScore = 7;
+            updateScoreDisplay();
+        })
+        .catch(error => console.error("Error loading events:", error));
+}
+
+// Function to shuffle the array (Fisher-Yates algorithm)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+    return array;
+}
+
+// Function to randomize events on button click
+function randomizeEvents() {
+    const randomEvents = shuffleArray(eventsData).slice(0, 7);
     const unsortedEventsContainer = document.getElementById("unsorted-events");
     unsortedEventsContainer.innerHTML = ""; // Clear existing events
+    randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
-    eventsData.forEach(event => createEventElement(event, unsortedEventsContainer));
-
-    // Set total possible score
-    totalPossibleScore = eventsData.length;
+    // Update totalPossibleScore based on the unsorted events
+    totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
 }
+
+// Add event listener to Randomize button
+document.getElementById("randomize-btn").addEventListener("click", randomizeEvents);
+
+// Function to clear all events
+function clearAllEvents() {
+    // Clear unsorted events
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    unsortedEventsContainer.innerHTML = ""; // Clear all events
+
+    // Clear ordered timeline events
+    const orderedTimelineContainer = document.getElementById("ordered-timeline");
+    orderedTimelineContainer.innerHTML = ""; // Clear all events
+
+    // Reset player score to 0
+    playerScore = 0;
+
+    // Update total possible score based on the remaining events in both lists
+    totalPossibleScore = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
+    updateScoreDisplay();
+}
+
+// Add event listener to Clear All button
+document.getElementById("clear-all-btn").addEventListener("click", clearAllEvents);
 
 // Function to create an event element
 function createEventElement(event, container) {
@@ -86,11 +135,13 @@ function removeEvent(eventElement, eventName) {
 
     eventElement.remove();
     eventsData.splice(eventsData.findIndex(e => e.name === eventName), 1);
-    totalPossibleScore = eventsData.length;
+
+    // Update totalPossibleScore based on the remaining events
+    totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
 }
 
-// Function to add a new event from input
+// Add a new event from input
 function addEvent() {
     const eventName = document.getElementById("event-name").value.trim();
     const eventDate = document.getElementById("event-date").value;
@@ -104,7 +155,8 @@ function addEvent() {
     eventsData.push(newEvent);
     createEventElement(newEvent, document.getElementById("unsorted-events"));
 
-    totalPossibleScore = eventsData.length;
+    // Update totalPossibleScore based on the unsorted events
+    totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
 
     // Clear input fields
