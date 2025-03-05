@@ -42,10 +42,35 @@ function randomizeEvents() {
     const unsortedEventsContainer = document.getElementById("unsorted-events");
     unsortedEventsContainer.innerHTML = ""; // Clear existing events
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+
+    // Update totalPossibleScore based on the unsorted events
+    totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+    updateScoreDisplay();
 }
 
 // Add event listener to Randomize button
 document.getElementById("randomize-btn").addEventListener("click", randomizeEvents);
+
+// Function to clear all events
+function clearAllEvents() {
+    // Clear unsorted events
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    unsortedEventsContainer.innerHTML = ""; // Clear all events
+
+    // Clear ordered timeline events
+    const orderedTimelineContainer = document.getElementById("ordered-timeline");
+    orderedTimelineContainer.innerHTML = ""; // Clear all events
+
+    // Reset player score to 0
+    playerScore = 0;
+
+    // Update total possible score based on the remaining events in both lists
+    totalPossibleScore = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
+    updateScoreDisplay();
+}
+
+// Add event listener to Clear All button
+document.getElementById("clear-all-btn").addEventListener("click", clearAllEvents);
 
 // Function to create an event element
 function createEventElement(event, container) {
@@ -110,11 +135,13 @@ function removeEvent(eventElement, eventName) {
 
     eventElement.remove();
     eventsData.splice(eventsData.findIndex(e => e.name === eventName), 1);
-    totalPossibleScore = eventsData.length;
+
+    // Update totalPossibleScore based on the remaining events
+    totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
 }
 
-// Function to add a new event from input
+// Add a new event from input
 function addEvent() {
     const eventName = document.getElementById("event-name").value.trim();
     const eventDate = document.getElementById("event-date").value;
@@ -128,7 +155,8 @@ function addEvent() {
     eventsData.push(newEvent);
     createEventElement(newEvent, document.getElementById("unsorted-events"));
 
-    totalPossibleScore = eventsData.length;
+    // Update totalPossibleScore based on the unsorted events
+    totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
 
     // Clear input fields
