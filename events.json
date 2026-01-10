@@ -84,10 +84,6 @@
         "date": "1888-03-11"
     },
     {
-        "name": "World Wide Web is made publicly available",
-        "date": "1989-03-12"
-    },
-    {
         "name": "The planet Uranus is discovered by William Herschel",
         "date": "1781-03-13"
     },
@@ -96,8 +92,8 @@
         "date": "1916-03-14"
     },
     {
-        "name": "Julius Caesar is assassinated by Roman senators",
-        "date": "-44-03-15"
+        "name": "Julius Caesar is assassinated by Roman senators (44 BCE)",
+        "date": "0044-03-15"
     },
     {
         "name": "Microsoft is founded by Bill Gates and Paul Allen",

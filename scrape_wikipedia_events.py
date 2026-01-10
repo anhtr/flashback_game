@@ -15,6 +15,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import re
+import time
 from datetime import datetime
 
 
@@ -189,7 +190,6 @@ def scrape_all_events():
             all_events.extend(events)
             
             # Be polite to Wikipedia servers
-            import time
             time.sleep(0.5)
     
     return all_events

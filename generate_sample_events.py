@@ -38,10 +38,9 @@ def generate_sample_events():
         {"name": "The Endeavour space shuttle is launched", "date": "1992-03-02"},
         {"name": "Alexander Graham Bell makes the first successful telephone call", "date": "1876-03-10"},
         {"name": "The Blizzard of 1888 begins along the eastern seaboard", "date": "1888-03-11"},
-        {"name": "World Wide Web is made publicly available", "date": "1989-03-12"},
         {"name": "The planet Uranus is discovered by William Herschel", "date": "1781-03-13"},
         {"name": "Albert Einstein publishes his general theory of relativity", "date": "1916-03-14"},
-        {"name": "Julius Caesar is assassinated by Roman senators", "date": "-44-03-15"},
+        {"name": "Julius Caesar is assassinated by Roman senators (44 BCE)", "date": "0044-03-15"},
         
         # April
         {"name": "Microsoft is founded by Bill Gates and Paul Allen", "date": "1975-04-04"},
