@@ -21,8 +21,14 @@ from datetime import datetime
 
 def fetch_wikipedia_page(url):
     """Fetch the Wikipedia page content."""
+    # Wikipedia requires a User-Agent header to prevent blocking
+    # See: https://meta.wikimedia.org/wiki/User-Agent_policy
+    headers = {
+        'User-Agent': 'FlashbackGameBot/1.0 (https://github.com/anhtr/flashback_game; Educational game project) Python/requests'
+    }
+    
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         return response.text
     except requests.HTTPError as e:
