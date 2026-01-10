@@ -92,10 +92,6 @@
         "date": "1916-03-14"
     },
     {
-        "name": "Julius Caesar is assassinated by Roman senators (44 BCE)",
-        "date": "0044-03-15"
-    },
-    {
         "name": "Microsoft is founded by Bill Gates and Paul Allen",
         "date": "1975-04-04"
     },
@@ -268,7 +264,7 @@
         "date": "1810-09-17"
     },
     {
-        "name": "The U.S. Constitution is signed",
+        "name": "The Constitutional Convention concludes and the U.S. Constitution is signed",
         "date": "1787-09-17"
     },
     {
@@ -326,10 +322,6 @@
     {
         "name": "The first Nobel Prizes are awarded",
         "date": "1901-12-10"
-    },
-    {
-        "name": "The Titanic begins construction",
-        "date": "1908-12-16"
     },
     {
         "name": "The Boston Tea Party takes place",

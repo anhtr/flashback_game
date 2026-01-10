@@ -40,7 +40,6 @@ def generate_sample_events():
         {"name": "The Blizzard of 1888 begins along the eastern seaboard", "date": "1888-03-11"},
         {"name": "The planet Uranus is discovered by William Herschel", "date": "1781-03-13"},
         {"name": "Albert Einstein publishes his general theory of relativity", "date": "1916-03-14"},
-        {"name": "Julius Caesar is assassinated by Roman senators (44 BCE)", "date": "0044-03-15"},
         
         # April
         {"name": "Microsoft is founded by Bill Gates and Paul Allen", "date": "1975-04-04"},
@@ -96,7 +95,7 @@ def generate_sample_events():
         {"name": "The terrorist attacks on the World Trade Center and Pentagon occur", "date": "2001-09-11"},
         {"name": "The Star-Spangled Banner is written by Francis Scott Key", "date": "1814-09-14"},
         {"name": "The first Oktoberfest is held in Munich", "date": "1810-09-17"},
-        {"name": "The U.S. Constitution is signed", "date": "1787-09-17"},
+        {"name": "The Constitutional Convention concludes and the U.S. Constitution is signed", "date": "1787-09-17"},
         
         # October
         {"name": "The Gregorian calendar is first adopted in Italy and Spain", "date": "1582-10-15"},
@@ -117,7 +116,6 @@ def generate_sample_events():
         # December
         {"name": "The Wright brothers make their first powered flight", "date": "1903-12-17"},
         {"name": "The first Nobel Prizes are awarded", "date": "1901-12-10"},
-        {"name": "The Titanic begins construction", "date": "1908-12-16"},
         {"name": "The Boston Tea Party takes place", "date": "1773-12-16"},
         {"name": "The Soviet Union is officially dissolved", "date": "1991-12-26"},
         {"name": "Charles Dickens publishes A Christmas Carol", "date": "1843-12-19"},
