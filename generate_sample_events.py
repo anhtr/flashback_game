@@ -19,7 +19,7 @@ def generate_sample_events():
         {"name": "Apple Computer is incorporated", "date": "1977-01-03"},
         {"name": "Construction of the Golden Gate Bridge begins", "date": "1933-01-05"},
         {"name": "Samuel Morse demonstrates the telegraph", "date": "1838-01-06"},
-        {"name": "Galileo Galilei discovers three of Jupiter's moons", "date": "1610-01-07"},
+        {"name": "Galileo Galilei discovers four of Jupiter's moons", "date": "1610-01-07"},
         {"name": "The Battle of New Orleans takes place", "date": "1815-01-08"},
         {"name": "Apple unveils the iPhone at Macworld", "date": "2007-01-09"},
         {"name": "The League of Nations is established", "date": "1920-01-10"},
