@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+"""
+Generate sample events for testing the Flashback Game.
+This creates a more historically accurate events.json file.
+
+Note: To get real Wikipedia data, run scrape_wikipedia_events.py in an environment
+with internet access to en.wikipedia.org.
+"""
+
+import json
+
+def generate_sample_events():
+    """Generate a list of historically accurate sample events."""
+    events = [
+        # January
+        {"name": "The Euro is introduced as electronic currency", "date": "1999-01-01"},
+        {"name": "Haiti declares independence from France", "date": "1804-01-01"},
+        {"name": "British authorities seize the Stone of Scone from Scotland", "date": "1296-01-01"},
+        {"name": "Apple Computer is incorporated", "date": "1977-01-03"},
+        {"name": "Construction of the Golden Gate Bridge begins", "date": "1933-01-05"},
+        {"name": "Samuel Morse demonstrates the telegraph", "date": "1838-01-06"},
+        {"name": "Galileo Galilei discovers four of Jupiter's moons", "date": "1610-01-07"},
+        {"name": "The Battle of New Orleans takes place", "date": "1815-01-08"},
+        {"name": "Apple unveils the iPhone at Macworld", "date": "2007-01-09"},
+        {"name": "The League of Nations is established", "date": "1920-01-10"},
+        
+        # February
+        {"name": "The first session of the United States Supreme Court is held", "date": "1790-02-01"},
+        {"name": "The Treaty of Guadalupe Hidalgo is signed, ending the Mexican-American War", "date": "1848-02-02"},
+        {"name": "The Communist Manifesto is published", "date": "1848-02-03"},
+        {"name": "Facebook is founded by Mark Zuckerberg", "date": "2004-02-04"},
+        {"name": "The Curtis Act abolishes tribal jurisdiction in Indian Territory", "date": "1906-02-05"},
+        {"name": "Queen Elizabeth II begins her reign", "date": "1952-02-06"},
+        {"name": "The Beatles arrive in the United States for the first time", "date": "1964-02-07"},
+        
+        # March
+        {"name": "The first Academy Awards ceremony is held", "date": "1929-03-01"},
+        {"name": "The Endeavour space shuttle is launched", "date": "1992-03-02"},
+        {"name": "Alexander Graham Bell makes the first successful telephone call", "date": "1876-03-10"},
+        {"name": "The Blizzard of 1888 begins along the eastern seaboard", "date": "1888-03-11"},
+        {"name": "The planet Uranus is discovered by William Herschel", "date": "1781-03-13"},
+        {"name": "Albert Einstein publishes his general theory of relativity", "date": "1916-03-14"},
+        
+        # April
+        {"name": "Microsoft is founded by Bill Gates and Paul Allen", "date": "1975-04-04"},
+        {"name": "Martin Luther King Jr. is assassinated in Memphis", "date": "1968-04-04"},
+        {"name": "The Titanic sets sail from Southampton", "date": "1912-04-10"},
+        {"name": "Apollo 13 oxygen tank explodes", "date": "1970-04-13"},
+        {"name": "Abraham Lincoln is assassinated by John Wilkes Booth", "date": "1865-04-14"},
+        {"name": "The Titanic sinks after hitting an iceberg", "date": "1912-04-15"},
+        {"name": "The Boston Marathon bombing occurs", "date": "2013-04-15"},
+        {"name": "The first McDonald's restaurant opens", "date": "1955-04-15"},
+        {"name": "The first human spaceflight by Yuri Gagarin", "date": "1961-04-12"},
+        
+        # May
+        {"name": "The Empire State Building opens in New York City", "date": "1931-05-01"},
+        {"name": "The construction of the Hudson River Tunnel is begun", "date": "1874-05-06"},
+        {"name": "Germany surrenders to the Allied forces, ending World War II in Europe", "date": "1945-05-08"},
+        {"name": "The first transcontinental railroad is completed", "date": "1869-05-10"},
+        {"name": "The first kibbutz is founded in Palestine", "date": "1910-05-11"},
+        {"name": "Edmund Hillary and Tenzing Norgay reach the summit of Mount Everest", "date": "1953-05-29"},
+        {"name": "Constantinople falls to the Ottoman Turks", "date": "1453-05-29"},
+        
+        # June
+        {"name": "Kentucky becomes the 15th U.S. state", "date": "1792-06-01"},
+        {"name": "The first American troops arrive in France during World War I", "date": "1917-06-26"},
+        {"name": "D-Day: Allied forces invade Normandy", "date": "1944-06-06"},
+        {"name": "The Six-Day War begins", "date": "1967-06-05"},
+        {"name": "Robert F. Kennedy is assassinated", "date": "1968-06-05"},
+        {"name": "Ronald Reagan gives his \"Tear down this wall\" speech in Berlin", "date": "1987-06-12"},
+        {"name": "Nelson Mandela is sentenced to life in prison", "date": "1964-06-12"},
+        {"name": "The Magna Carta is sealed by King John of England", "date": "1215-06-15"},
+        
+        # July
+        {"name": "The Battle of Gettysburg begins", "date": "1863-07-01"},
+        {"name": "The Declaration of Independence is adopted", "date": "1776-07-04"},
+        {"name": "The Rosetta Stone is discovered in Egypt", "date": "1799-07-15"},
+        {"name": "The French Revolution begins with the Storming of the Bastille", "date": "1789-07-14"},
+        {"name": "Apollo 11 lands on the Moon", "date": "1969-07-20"},
+        {"name": "The first atomic bomb is tested at Trinity Site", "date": "1945-07-16"},
+        {"name": "World War I begins", "date": "1914-07-28"},
+        
+        # August
+        {"name": "Columbus sets sail on his first voyage", "date": "1492-08-03"},
+        {"name": "The atomic bomb is dropped on Hiroshima", "date": "1945-08-06"},
+        {"name": "The atomic bomb is dropped on Nagasaki", "date": "1945-08-09"},
+        {"name": "Singapore becomes an independent nation", "date": "1965-08-09"},
+        {"name": "The Berlin Wall is erected", "date": "1961-08-13"},
+        {"name": "India gains independence from the United Kingdom", "date": "1947-08-15"},
+        {"name": "Elvis Presley dies", "date": "1977-08-16"},
+        
+        # September
+        {"name": "The Great Fire of London starts", "date": "1666-09-02"},
+        {"name": "World War II begins with Germany's invasion of Poland", "date": "1939-09-01"},
+        {"name": "The terrorist attacks on the World Trade Center and Pentagon occur", "date": "2001-09-11"},
+        {"name": "The Star-Spangled Banner is written by Francis Scott Key", "date": "1814-09-14"},
+        {"name": "The first Oktoberfest is held in Munich", "date": "1810-09-17"},
+        {"name": "The Constitutional Convention concludes and the U.S. Constitution is signed", "date": "1787-09-17"},
+        
+        # October
+        {"name": "The Gregorian calendar is first adopted in Italy and Spain", "date": "1582-10-15"},
+        {"name": "Christopher Columbus reaches the New World", "date": "1492-10-12"},
+        {"name": "The Cuban Missile Crisis begins", "date": "1962-10-16"},
+        {"name": "The stock market crash of 1929 begins", "date": "1929-10-24"},
+        {"name": "The United Nations is founded", "date": "1945-10-24"},
+        {"name": "Sputnik 1, the first artificial satellite, is launched", "date": "1957-10-04"},
+        
+        # November
+        {"name": "The Suez Canal opens for the first time", "date": "1869-11-17"},
+        {"name": "The Berlin Wall falls", "date": "1989-11-09"},
+        {"name": "The Gettysburg Address is delivered by Abraham Lincoln", "date": "1863-11-19"},
+        {"name": "John F. Kennedy is assassinated in Dallas", "date": "1963-11-22"},
+        {"name": "Charles Darwin publishes On the Origin of Species", "date": "1859-11-24"},
+        {"name": "The first wagon train reaches California", "date": "1841-11-04"},
+        
+        # December
+        {"name": "The Wright brothers make their first powered flight", "date": "1903-12-17"},
+        {"name": "The first Nobel Prizes are awarded", "date": "1901-12-10"},
+        {"name": "The Boston Tea Party takes place", "date": "1773-12-16"},
+        {"name": "The Soviet Union is officially dissolved", "date": "1991-12-26"},
+        {"name": "Charles Dickens publishes A Christmas Carol", "date": "1843-12-19"},
+        {"name": "Apollo 8 launches, the first manned mission to orbit the Moon", "date": "1968-12-21"},
+        {"name": "The first human heart transplant is performed by Christiaan Barnard", "date": "1967-12-03"},
+    ]
+    
+    return events
+
+
+def main():
+    """Generate and save sample events."""
+    events = generate_sample_events()
+    
+    output_file = "events.json"
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(events, f, indent=4, ensure_ascii=False)
+    
+    print(f"Generated {len(events)} sample events and saved to {output_file}")
+    print("\nNote: These are sample events for testing.")
+    print("To get real Wikipedia data, run scrape_wikipedia_events.py")
+    print("in an environment with internet access to en.wikipedia.org")
+
+
+if __name__ == "__main__":
+    main()
