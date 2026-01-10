@@ -179,7 +179,8 @@ def scrape_all_events():
     """Scrape events from all days of the year."""
     all_events = []
     
-    # Days per month (non-leap year)
+    # Days per month (including leap day for February)
+    # Note: Wikipedia has pages for February 29, so we include it
     days_in_month = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     
     for month in range(1, 13):
