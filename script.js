@@ -1,9 +1,7 @@
 let playerScore = 0;
 let totalPossibleScore = 0;
-let draggedItem = null;
-let placeholder = document.createElement('div');
+let selectedEvent = null;
 let eventsData = [];
-placeholder.classList.add('placeholder');
 
 // Function to create and add events dynamically
 function loadEvents() {
@@ -43,6 +41,10 @@ function randomizeEvents() {
     unsortedEventsContainer.innerHTML = ""; // Clear existing events
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
+    // Clear any selected event and placement slots
+    selectedEvent = null;
+    clearPlacementSlots();
+
     // Update totalPossibleScore based on the unsorted events
     totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
@@ -61,6 +63,10 @@ function clearAllEvents() {
     const orderedTimelineContainer = document.getElementById("ordered-timeline");
     orderedTimelineContainer.innerHTML = ""; // Clear all events
 
+    // Clear selection and placement slots
+    selectedEvent = null;
+    clearPlacementSlots();
+
     // Reset player score to 0
     playerScore = 0;
 
@@ -75,8 +81,7 @@ document.getElementById("clear-all-btn").addEventListener("click", clearAllEvent
 // Function to create an event element
 function createEventElement(event, container) {
     let eventElement = document.createElement("div");
-    eventElement.classList.add("event");
-    eventElement.draggable = true;
+    eventElement.classList.add("event", "no-select");
     eventElement.dataset.date = event.date;
 
     // Flex container to align text, remove button, and date
@@ -100,9 +105,12 @@ function createEventElement(event, container) {
 
     // Remove button
     let removeButton = document.createElement("button");
-    removeButton.classList.add("remove-button");
+    removeButton.classList.add("remove-button", "no-select");
     removeButton.textContent = "Remove";
-    removeButton.addEventListener("click", () => removeEvent(eventElement, event.name));
+    removeButton.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent event selection when clicking remove
+        removeEvent(eventElement, event.name);
+    });
 
     // Hidden date span (for later reveal)
     let eventDate = document.createElement("span");
@@ -120,8 +128,8 @@ function createEventElement(event, container) {
     eventElement.appendChild(eventContent);
     container.appendChild(eventElement);
 
-    // Attach drag event listeners
-    addDragListeners(eventElement);
+    // Attach click event listeners
+    addClickListeners(eventElement);
 }
 
 // Function to remove an event (only from unsorted list)
@@ -135,6 +143,12 @@ function removeEvent(eventElement, eventName) {
 
     eventElement.remove();
     eventsData.splice(eventsData.findIndex(e => e.name === eventName), 1);
+
+    // Clear selection if this was the selected event
+    if (selectedEvent === eventElement) {
+        selectedEvent = null;
+        clearPlacementSlots();
+    }
 
     // Update totalPossibleScore based on the remaining events
     totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
@@ -164,81 +178,107 @@ function addEvent() {
     document.getElementById("event-date").value = "";
 }
 
-// Attach drag event listeners
-function addDragListeners(event) {
-    event.addEventListener('dragstart', (e) => {
-        if (event.classList.contains("dropped")) {
-            e.preventDefault(); // Prevent drag if already dropped
-            return;
-        }
-        
-        draggedItem = event;
-        setTimeout(() => event.style.display = "none", 0);
-    });
-
-    event.addEventListener('dragend', (e) => {
-        draggedItem.style.display = "block";
-        placeholder.remove();
-
-        // Check if the event was dropped into the ordered timeline
-        const droppedInOrderedTimeline = document.querySelector('#ordered-timeline').contains(draggedItem);
-
-        if (!droppedInOrderedTimeline) {
-            // If not, move it back to the unsorted list
-            const unsortedEventsContainer = document.getElementById('unsorted-events');
-            unsortedEventsContainer.appendChild(draggedItem);
-            // Reset any changes made during the drag (like hiding the remove button)
-            let removeButton = draggedItem.querySelector(".remove-button");
-            if (removeButton) removeButton.style.display = "block";
-            let eventDate = draggedItem.querySelector(".event-Date");
-            if (eventDate) {
-                eventDate.classList.add("hidden");
-            }
-        } else {
-            // Mark the event as dropped and disable dragging
-            draggedItem.classList.add("dropped");
-            draggedItem.draggable = false;
-            checkLastDroppedOrder(draggedItem);
-        }
-
-        // Disable remove button and reveal the date after being placed in ordered list
-        if (draggedItem.parentNode.id === "ordered-timeline") {
-            let removeButton = draggedItem.querySelector(".remove-button");
-            if (removeButton) removeButton.style.display = "none"; // Hide the remove button
-
-            let eventDate = draggedItem.querySelector(".event-Date");
-            if (eventDate) {
-                eventDate.classList.remove("hidden"); // Show the date
-            }
+// Attach click event listeners
+function addClickListeners(event) {
+    event.addEventListener('click', (e) => {
+        // Only allow selection if event is in unsorted pile
+        if (event.parentNode.id === "unsorted-events") {
+            selectEvent(event);
         }
     });
 }
 
-// Drag & drop functionality
-document.querySelectorAll('.timeline').forEach(timeline => {
-    timeline.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        let target = e.target.closest('.event');
-        let timelineRect = timeline.getBoundingClientRect();
-        let mouseY = e.clientY;
+// Function to select an event and show placement slots
+function selectEvent(event) {
+    // Clear previous selection
+    if (selectedEvent) {
+        selectedEvent.classList.remove('selected');
+    }
+    
+    // Clear previous placement slots
+    clearPlacementSlots();
+    
+    // Select the new event
+    selectedEvent = event;
+    event.classList.add('selected');
+    
+    // Show placement slots in the ordered timeline
+    showPlacementSlots();
+}
 
-        if (target && target !== placeholder) {
-            target.parentNode.insertBefore(placeholder, target);
-        } else if (!target && mouseY > timelineRect.bottom - 20) {
-            if (timeline.lastElementChild !== placeholder) {
-                timeline.appendChild(placeholder);
-            }
-        }
-    });
+// Function to show placement slots in the ordered timeline
+function showPlacementSlots() {
+    const orderedTimeline = document.getElementById("ordered-timeline");
+    const existingEvents = Array.from(orderedTimeline.children);
+    
+    // Add slot at the beginning
+    const firstSlot = createPlacementSlot(0);
+    orderedTimeline.insertBefore(firstSlot, orderedTimeline.firstChild);
+    
+    // Add slots between existing events and at the end
+    for (let i = 0; i < existingEvents.length; i++) {
+        const slot = createPlacementSlot(i + 1);
+        orderedTimeline.insertBefore(slot, existingEvents[i].nextSibling);
+    }
+}
 
-    timeline.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if (draggedItem) {
-            timeline.insertBefore(draggedItem, placeholder);
-            placeholder.remove();
-        }
+// Function to create a placement slot
+function createPlacementSlot(position) {
+    const slot = document.createElement("div");
+    slot.classList.add("placement-slot", "no-select");
+    slot.textContent = "Click to place here";
+    slot.dataset.position = position;
+    
+    slot.addEventListener('click', () => {
+        placeEventAtPosition(position);
     });
-});
+    
+    return slot;
+}
+
+// Function to place the selected event at a specific position
+function placeEventAtPosition(position) {
+    if (!selectedEvent) return;
+    
+    const orderedTimeline = document.getElementById("ordered-timeline");
+    const existingEvents = Array.from(orderedTimeline.children).filter(child => !child.classList.contains('placement-slot'));
+    
+    // Remove the event from unsorted pile
+    selectedEvent.remove();
+    
+    // Insert at the specified position
+    if (position >= existingEvents.length) {
+        orderedTimeline.appendChild(selectedEvent);
+    } else {
+        orderedTimeline.insertBefore(selectedEvent, existingEvents[position]);
+    }
+    
+    // Mark the event as placed and disable clicking
+    selectedEvent.classList.remove('selected');
+    selectedEvent.classList.add('placed');
+    
+    // Disable remove button and reveal the date
+    let removeButton = selectedEvent.querySelector(".remove-button");
+    if (removeButton) removeButton.style.display = "none";
+    
+    let eventDate = selectedEvent.querySelector(".event-Date");
+    if (eventDate) {
+        eventDate.classList.remove("hidden");
+    }
+    
+    // Check if placement is correct
+    checkEventOrder(selectedEvent);
+    
+    // Clear placement slots and selection
+    clearPlacementSlots();
+    selectedEvent = null;
+}
+
+// Function to clear all placement slots
+function clearPlacementSlots() {
+    const slots = document.querySelectorAll('.placement-slot');
+    slots.forEach(slot => slot.remove());
+}
 
 // Format date function
 function formatDate(dateString) {
@@ -247,42 +287,42 @@ function formatDate(dateString) {
 }
 
 // Check if event is in the correct order
-function checkLastDroppedOrder(draggedEvent) {
-    let dateElement = draggedEvent.querySelector('.event-Date');
+function checkEventOrder(placedEvent) {
+    let dateElement = placedEvent.querySelector('.event-Date');
     if (dateElement) {
-        dateElement.textContent = " (" + formatDate(draggedEvent.dataset.date) + ")";
+        dateElement.textContent = " (" + formatDate(placedEvent.dataset.date) + ")";
         dateElement.classList.remove('hidden');
     }
 
     let targetTimeline = document.querySelector('#ordered-timeline');
     let allEvents = Array.from(targetTimeline.querySelectorAll('.event'));
-    let draggedTime = new Date(draggedEvent.dataset.date).getTime();
+    let placedTime = new Date(placedEvent.dataset.date).getTime();
     
-    let otherEvents = allEvents.filter(e => e !== draggedEvent);
+    let otherEvents = allEvents.filter(e => e !== placedEvent);
     let correctIndex = otherEvents.reduce((count, e) => {
         let eTime = new Date(e.dataset.date).getTime();
-        return count + (eTime < draggedTime ? 1 : 0);
+        return count + (eTime < placedTime ? 1 : 0);
     }, 0);
     
-    let currentIndex = allEvents.indexOf(draggedEvent);
+    let currentIndex = allEvents.indexOf(placedEvent);
     
-    if (!draggedEvent.dataset.initialAnswer) {
+    if (!placedEvent.dataset.initialAnswer) {
         if (currentIndex === correctIndex) {
-            draggedEvent.classList.add('correct');
-            draggedEvent.classList.remove('incorrect');
-            draggedEvent.dataset.initialAnswer = 'correct';
+            placedEvent.classList.add('correct');
+            placedEvent.classList.remove('incorrect');
+            placedEvent.dataset.initialAnswer = 'correct';
             playerScore++;
         } else {
-            draggedEvent.classList.add('incorrect');
-            draggedEvent.classList.remove('correct');
-            draggedEvent.dataset.initialAnswer = 'incorrect';
+            placedEvent.classList.add('incorrect');
+            placedEvent.classList.remove('correct');
+            placedEvent.dataset.initialAnswer = 'incorrect';
 
-            let remainingEvents = Array.from(targetTimeline.querySelectorAll('.event')).filter(e => e !== draggedEvent);
+            let remainingEvents = Array.from(targetTimeline.querySelectorAll('.event')).filter(e => e !== placedEvent);
             let correctPosition = remainingEvents[correctIndex];
             if (correctPosition) {
-                targetTimeline.insertBefore(draggedEvent, correctPosition);
+                targetTimeline.insertBefore(placedEvent, correctPosition);
             } else {
-                targetTimeline.appendChild(draggedEvent);
+                targetTimeline.appendChild(placedEvent);
             }
         }
     }
