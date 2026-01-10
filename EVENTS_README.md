@@ -24,8 +24,9 @@ python3 scrape_wikipedia_events.py
 - Excludes birth and death dates
 - Removes "(pictured)" phrases from event descriptions
 - Generates events.json in the required format
+- Includes proper User-Agent header to comply with Wikipedia's bot policy
 
-**Note:** This script requires internet access to en.wikipedia.org. The scraping process takes several minutes to complete as it fetches data from 366 different pages.
+**Note:** This script requires internet access to en.wikipedia.org. The scraping process takes several minutes to complete as it fetches data from 366 different pages. The script includes a proper User-Agent header to comply with [Wikipedia's User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy).
 
 ### generate_sample_events.py
 
