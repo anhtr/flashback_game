@@ -81,7 +81,7 @@ document.getElementById("clear-all-btn").addEventListener("click", clearAllEvent
 // Function to create an event element
 function createEventElement(event, container) {
     let eventElement = document.createElement("div");
-    eventElement.classList.add("event");
+    eventElement.classList.add("event", "no-select");
     eventElement.dataset.date = event.date;
 
     // Flex container to align text, remove button, and date
@@ -105,7 +105,7 @@ function createEventElement(event, container) {
 
     // Remove button
     let removeButton = document.createElement("button");
-    removeButton.classList.add("remove-button");
+    removeButton.classList.add("remove-button", "no-select");
     removeButton.textContent = "Remove";
     removeButton.addEventListener("click", (e) => {
         e.stopPropagation(); // Prevent event selection when clicking remove
@@ -225,7 +225,7 @@ function showPlacementSlots() {
 // Function to create a placement slot
 function createPlacementSlot(position) {
     const slot = document.createElement("div");
-    slot.classList.add("placement-slot");
+    slot.classList.add("placement-slot", "no-select");
     slot.textContent = "Click to place here";
     slot.dataset.position = position;
     

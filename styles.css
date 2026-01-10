@@ -2,6 +2,13 @@ body {
     font-family: Arial, sans-serif;
     text-align: center;
 }
+.no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
 .container {
     width: 50%;
     margin: auto;
@@ -20,11 +27,6 @@ body {
     cursor: pointer;
     border: 1px solid #333;
     transition: all 0.3s ease;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    touch-action: manipulation;
 }
 .event:hover {
     background: #d0d0d0;
@@ -50,21 +52,9 @@ body {
     justify-content: center;
     font-size: 14px;
     color: #4169E1;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    touch-action: manipulation;
 }
 .placement-slot:hover {
     background: rgba(135, 206, 235, 0.5);
-}
-button {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    touch-action: manipulation;
 }
 .hidden {
     display: none;
