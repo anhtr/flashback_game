@@ -115,64 +115,21 @@ def parse_events_from_month_page(month, day):
     if not content:
         return []
     
-    # Find all list items in the content
-    list_items = content.find_all('li')
+    # Find the parser output div which contains the actual content
+    parser_output = content.find('div', {'class': 'mw-parser-output'})
+    if not parser_output:
+        parser_output = content
     
-    for li in list_items:
-        # Skip if it's a birth/death entry
-        if is_birth_or_death(li):
-            continue
-        
-        text = li.get_text()
-        
-        # Skip if it's a recurring event
-        if is_recurring_event(text):
-            continue
-        
-        # Try to find a year link in the list item
-        year_links = li.find_all('a', href=re.compile(r'/wiki/\d{3,4}$'))
-        
-        if not year_links:
-            continue
-        
-        # Get the first year mentioned (typically the event year)
-        year = None
-        for link in year_links:
-            extracted_year = extract_year_from_link(link)
-            if extracted_year:
-                year = extracted_year
-                break
-        
+    # Find all year links that could be event markers
+    # Events start with a year link (e.g., <a href="/wiki/1726">1726</a>)
+    year_links = parser_output.find_all('a', href=re.compile(r'^/wiki/\d{3,4}$'))
+    
+    for year_link in year_links:
+        year = extract_year_from_link(year_link)
         if not year:
             continue
         
-        # Extract the event description
-        # The event text typically comes before the year link
-        event_text = ""
-        for content in li.contents:
-            if hasattr(content, 'name') and content.name == 'a':
-                href = content.get('href', '')
-                if re.search(r'/wiki/\d{3,4}$', href):
-                    # This is a year link, stop here
-                    break
-            if hasattr(content, 'get_text'):
-                event_text += content.get_text()
-            elif isinstance(content, str):
-                event_text += content
-        
-        # Clean up the event text
-        event_text = event_text.strip()
-        event_text = event_text.rstrip(':–-').strip()
-        event_text = remove_pictured_phrase(event_text)
-        
-        # Skip if the event text is too short or empty
-        if len(event_text) < 10:
-            continue
-        
-        # Create the date in YYYY-MM-DD format
-        date_str = f"{year}-{month:02d}-{day:02d}"
-        
-        # Validate the year is reasonable (not in the future, not ancient)
+        # Validate the year is reasonable
         try:
             year_int = int(year)
             current_year = datetime.now().year
@@ -181,6 +138,78 @@ def parse_events_from_month_page(month, day):
                 continue
         except ValueError:
             continue
+        
+        # Get the parent element (could be <li>, <p>, or other container)
+        parent = year_link.parent
+        if not parent:
+            continue
+        
+        # Check if this is a birth/death entry
+        if is_birth_or_death(parent):
+            continue
+        
+        # Get the full text of the parent element
+        full_text = parent.get_text()
+        
+        # Check if this is a recurring event
+        if is_recurring_event(full_text):
+            continue
+        
+        # Extract the event description
+        # The format is typically: YEAR – event description
+        # We need to get everything after the year and the dash
+        event_text = ""
+        
+        # Find the position of the year link in the parent's contents
+        contents = list(parent.children)
+        year_link_index = -1
+        for i, child in enumerate(contents):
+            if child == year_link:
+                year_link_index = i
+                break
+        
+        if year_link_index == -1:
+            continue
+        
+        # Collect text after the year link
+        found_dash = False
+        for i in range(year_link_index + 1, len(contents)):
+            child = contents[i]
+            
+            # Skip until we find the dash/separator
+            if not found_dash:
+                if isinstance(child, str):
+                    # Check for en-dash, em-dash, or hyphen followed by space
+                    if re.search(r'^\s*[–—-]\s*', child):
+                        found_dash = True
+                        # Add the text after the dash
+                        text_after_dash = re.sub(r'^\s*[–—-]\s*', '', child)
+                        event_text += text_after_dash
+                continue
+            
+            # After the dash, collect all content
+            if hasattr(child, 'get_text'):
+                event_text += child.get_text()
+            elif isinstance(child, str):
+                event_text += child
+        
+        # If we didn't find a dash, skip this entry
+        if not found_dash:
+            continue
+        
+        # Clean up the event text
+        event_text = event_text.strip()
+        event_text = remove_pictured_phrase(event_text)
+        
+        # Remove any trailing colons or dashes
+        event_text = event_text.rstrip(':–-').strip()
+        
+        # Skip if the event text is too short or empty
+        if len(event_text) < 10:
+            continue
+        
+        # Create the date in YYYY-MM-DD format
+        date_str = f"{year}-{month:02d}-{day:02d}"
         
         events.append({
             "name": event_text,
