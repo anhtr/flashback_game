@@ -35,7 +35,6 @@ def generate_sample_events():
         
         # March
         {"name": "The first Academy Awards ceremony is held", "date": "1929-03-01"},
-        {"name": "Mount Vesuvius erupts, destroying Pompeii and Herculaneum", "date": "1944-03-15"},
         {"name": "The Endeavour space shuttle is launched", "date": "1992-03-02"},
         {"name": "Alexander Graham Bell makes the first successful telephone call", "date": "1876-03-10"},
         {"name": "The Blizzard of 1888 begins along the eastern seaboard", "date": "1888-03-11"},
