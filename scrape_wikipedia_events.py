@@ -159,10 +159,11 @@ def parse_events_from_month_page(month, day):
         # Create the date in YYYY-MM-DD format
         date_str = f"{year}-{month:02d}-{day:02d}"
         
-        # Validate the year is reasonable (not in the future, not too ancient)
+        # Validate the year is reasonable (not in the future, not ancient)
         try:
             year_int = int(year)
             current_year = datetime.now().year
+            # Allow dates from year 1 CE onwards, up to current year
             if year_int > current_year or year_int < 1:
                 continue
         except ValueError:
@@ -181,12 +182,13 @@ def scrape_all_events():
     all_events = []
     
     # Days per month (including leap day for February)
-    # Note: Wikipedia has pages for February 29, so we include it
+    # Note: Wikipedia has pages for February 29, and we handle 404s gracefully
     days_in_month = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     
     for month in range(1, 13):
         for day in range(1, days_in_month[month - 1] + 1):
             events = parse_events_from_month_page(month, day)
+            # If February 29 returns no events (404 or empty), that's okay
             all_events.extend(events)
             
             # Be polite to Wikipedia servers
