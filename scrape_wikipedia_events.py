@@ -25,6 +25,13 @@ def fetch_wikipedia_page(url):
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         return response.text
+    except requests.HTTPError as e:
+        # Handle 404 errors gracefully (e.g., February 29 in non-leap years)
+        if e.response.status_code == 404:
+            print(f"Page not found (404): {url}")
+            return None
+        print(f"HTTP error fetching page: {e}")
+        return None
     except requests.RequestException as e:
         print(f"Error fetching page: {e}")
         return None
