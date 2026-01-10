@@ -201,8 +201,8 @@ def parse_events_from_month_page(month, day):
         event_text = event_text.strip()
         event_text = remove_pictured_phrase(event_text)
         
-        # Remove any trailing colons or dashes
-        event_text = event_text.rstrip(':–-').strip()
+        # Remove any trailing colons, en-dashes, em-dashes, or hyphens
+        event_text = event_text.rstrip(':–—-').strip()
         
         # Skip if the event text is too short or empty
         if len(event_text) < 10:
