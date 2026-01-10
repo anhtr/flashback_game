@@ -179,13 +179,13 @@ def parse_events_from_month_page(month, day):
             # Skip until we find the dash/separator
             if not found_dash:
                 if isinstance(child, str):
-                    # Check for en-dash, em-dash, or hyphen followed by space
-                    if re.search(r'^\s*[–—-]\s*', child):
+                    # Check for en-dash (–), em-dash (—), or hyphen (-) followed by space
+                    if re.search(r'^\s*[–—\-]\s*', child):
                         found_dash = True
                         # Add the text after the dash
-                        text_after_dash = re.sub(r'^\s*[–—-]\s*', '', child)
+                        text_after_dash = re.sub(r'^\s*[–—\-]\s*', '', child)
                         event_text += text_after_dash
-                continue
+                continue  # Continue to next iteration until dash is found
             
             # After the dash, collect all content
             if hasattr(child, 'get_text'):
