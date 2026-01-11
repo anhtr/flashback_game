@@ -82,14 +82,12 @@ body {
         margin-left: 0 !important;
         margin-top: 10px;
         width: 100%;
-        justify-content: flex-start;
+        justify-content: center;
     }
     
     /* Make remove button span almost full width for easier thumb access */
     .event .remove-button {
         width: 95%;
-        padding: 12px;
-        font-size: 16px;
     }
     
     /* Ensure timeline has minimal padding on small screens */
