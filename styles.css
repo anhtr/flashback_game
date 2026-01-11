@@ -85,6 +85,13 @@ body {
         justify-content: flex-start;
     }
     
+    /* Make remove button span almost full width for easier thumb access */
+    .event .remove-button {
+        width: 95%;
+        padding: 12px;
+        font-size: 16px;
+    }
+    
     /* Ensure timeline has minimal padding on small screens */
     .timeline {
         padding: 10px;
