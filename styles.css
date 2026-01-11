@@ -59,3 +59,39 @@ body {
 .hidden {
     display: none;
 }
+
+/* Media query for portrait mode or small screens */
+@media screen and (max-width: 768px), (orientation: portrait) and (max-width: 1024px) {
+    /* Make container full width to remove side padding */
+    .container {
+        width: 100%;
+        margin: 0;
+        padding: 0 10px;
+    }
+    
+    /* Stack event content vertically on small screens 
+       Note: !important is required to override inline styles set by JavaScript */
+    .event .event-content {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    /* Place event actions (remove button and date) at the bottom
+       Note: !important is required to override inline styles set by JavaScript */
+    .event .event-content > div {
+        margin-left: 0 !important;
+        margin-top: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Make remove button span almost full width for easier thumb access */
+    .event .remove-button {
+        width: 95%;
+    }
+    
+    /* Ensure timeline has minimal padding on small screens */
+    .timeline {
+        padding: 10px;
+    }
+}
