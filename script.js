@@ -1,7 +1,6 @@
 // Theme toggle functionality
 (function() {
     const themeToggle = document.getElementById('theme-toggle');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
     // Set dark mode as default, or use saved preference
     const savedTheme = localStorage.getItem('theme');
