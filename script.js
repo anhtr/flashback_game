@@ -2,6 +2,12 @@
 (function() {
     const themeToggle = document.getElementById('theme-toggle');
     
+    // Exit early if theme toggle element doesn't exist
+    if (!themeToggle) {
+        console.warn('Theme toggle button not found');
+        return;
+    }
+    
     // Set dark mode as default, or use saved preference
     const savedTheme = localStorage.getItem('theme');
     const currentTheme = savedTheme || 'dark';
