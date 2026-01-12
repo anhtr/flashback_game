@@ -28,17 +28,31 @@
     
     function updateToggleButton(theme) {
         if (theme === 'dark') {
-            themeToggle.innerHTML = '☀️ Light';
-            themeToggle.setAttribute('aria-label', 'Switch to light mode');
+            themeToggle.innerHTML = '🌙 Dark mode: ON';
+            themeToggle.setAttribute('aria-label', 'Dark mode is on, click to switch to light mode');
         } else {
-            themeToggle.innerHTML = '🌙 Dark';
-            themeToggle.setAttribute('aria-label', 'Switch to dark mode');
+            themeToggle.innerHTML = '☀️ Dark mode: OFF';
+            themeToggle.setAttribute('aria-label', 'Dark mode is off, click to switch to dark mode');
         }
     }
 })();
 
 // Shareable mode functionality
 let shareableModeEnabled = false;
+
+// Function to update shareable button text
+function updateShareableButtonText(enabled) {
+    const shareableToggle = document.getElementById('shareable-toggle');
+    if (!shareableToggle) return;
+    
+    if (enabled) {
+        shareableToggle.innerHTML = '✅ Shareable: ON';
+        shareableToggle.setAttribute('aria-label', 'Shareable mode is on');
+    } else {
+        shareableToggle.innerHTML = '⭕ Shareable: OFF';
+        shareableToggle.setAttribute('aria-label', 'Shareable mode is off');
+    }
+}
 
 // Function to convert date from yyyy-mm-dd to hex
 function dateToHex(dateStr) {
@@ -86,19 +100,30 @@ function decodeEventsFromURL(encodedStr) {
 function updateURLWithEvents() {
     if (!shareableModeEnabled) return;
     
+    // Collect events from both ordered timeline and unsorted events
+    const orderedTimelineContainer = document.getElementById("ordered-timeline");
     const unsortedEventsContainer = document.getElementById("unsorted-events");
-    const events = Array.from(unsortedEventsContainer.children).map(eventElement => ({
+    
+    const orderedEvents = Array.from(orderedTimelineContainer.children).map(eventElement => ({
         name: eventElement.querySelector('.event-text').textContent,
         date: eventElement.dataset.date
     }));
     
+    const unsortedEvents = Array.from(unsortedEventsContainer.children).map(eventElement => ({
+        name: eventElement.querySelector('.event-text').textContent,
+        date: eventElement.dataset.date
+    }));
+    
+    // Combine all events (ordered timeline + unsorted)
+    const allEvents = [...orderedEvents, ...unsortedEvents];
+    
     const url = new URL(window.location);
     
     // Handle empty event list with special indicator
-    if (events.length === 0) {
+    if (allEvents.length === 0) {
         url.searchParams.set('events', 'EMPTY');
     } else {
-        const encodedEvents = encodeEventsToURL(events);
+        const encodedEvents = encodeEventsToURL(allEvents);
         url.searchParams.set('events', encodedEvents);
     }
     
@@ -127,6 +152,7 @@ function loadEventsFromURL() {
             if (shareableToggle) {
                 shareableToggle.classList.add('active');
             }
+            updateShareableButtonText(true);
             
             // Enable copy button
             const copyLinkBtn = document.getElementById('copy-link-btn');
@@ -156,6 +182,7 @@ function loadEventsFromURL() {
             if (shareableToggle) {
                 shareableToggle.classList.add('active');
             }
+            updateShareableButtonText(true);
             
             // Enable copy button
             const copyLinkBtn = document.getElementById('copy-link-btn');
@@ -186,6 +213,7 @@ function loadEventsFromURL() {
     
     // Initially disable copy button if shareable mode is off
     copyLinkBtn.disabled = !shareableModeEnabled;
+    updateShareableButtonText(shareableModeEnabled);
     
     shareableToggle.addEventListener('click', () => {
         shareableModeEnabled = !shareableModeEnabled;
@@ -193,10 +221,12 @@ function loadEventsFromURL() {
         if (shareableModeEnabled) {
             shareableToggle.classList.add('active');
             copyLinkBtn.disabled = false;
+            updateShareableButtonText(true);
             updateURLWithEvents();
         } else {
             shareableToggle.classList.remove('active');
             copyLinkBtn.disabled = true;
+            updateShareableButtonText(false);
             // Remove events parameter from URL
             const url = new URL(window.location);
             url.searchParams.delete('events');
