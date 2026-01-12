@@ -28,13 +28,229 @@
     
     function updateToggleButton(theme) {
         if (theme === 'dark') {
-            themeToggle.innerHTML = '☀️ Light';
-            themeToggle.setAttribute('aria-label', 'Switch to light mode');
+            themeToggle.innerHTML = '🌙 Dark mode: ON';
+            themeToggle.setAttribute('aria-label', 'Dark mode is on, click to switch to light mode');
         } else {
-            themeToggle.innerHTML = '🌙 Dark';
-            themeToggle.setAttribute('aria-label', 'Switch to dark mode');
+            themeToggle.innerHTML = '☀️ Dark mode: OFF';
+            themeToggle.setAttribute('aria-label', 'Dark mode is off, click to switch to dark mode');
         }
     }
+})();
+
+// Shareable mode functionality
+let shareableModeEnabled = false;
+
+// Function to update shareable button text
+function updateShareableButtonText(enabled) {
+    const shareableToggle = document.getElementById('shareable-toggle');
+    if (!shareableToggle) return;
+    
+    if (enabled) {
+        shareableToggle.innerHTML = '✅ Shareable: ON';
+        shareableToggle.setAttribute('aria-label', 'Shareable mode is on');
+    } else {
+        shareableToggle.innerHTML = '⭕ Shareable: OFF';
+        shareableToggle.setAttribute('aria-label', 'Shareable mode is off');
+    }
+}
+
+// Function to convert date from yyyy-mm-dd to hex
+function dateToHex(dateStr) {
+    // Remove hyphens: yyyy-mm-dd -> yyyymmdd
+    const compactDate = dateStr.replace(/-/g, '');
+    // Convert to number and then to hex
+    const numDate = parseInt(compactDate, 10);
+    return numDate.toString(16);
+}
+
+// Function to convert hex back to yyyy-mm-dd
+function hexToDate(hexStr) {
+    // Convert hex to number
+    const numDate = parseInt(hexStr, 16);
+    // Convert to string and pad to 8 digits
+    const dateStr = numDate.toString().padStart(8, '0');
+    // Format as yyyy-mm-dd
+    return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+}
+
+// Function to encode events to URL format
+function encodeEventsToURL(events) {
+    const encodedEvents = events.map(event => ({
+        name: event.name,
+        date: dateToHex(event.date)
+    }));
+    return encodeURIComponent(JSON.stringify(encodedEvents));
+}
+
+// Function to decode events from URL
+function decodeEventsFromURL(encodedStr) {
+    try {
+        const decoded = JSON.parse(decodeURIComponent(encodedStr));
+        return decoded.map(event => ({
+            name: event.name,
+            date: hexToDate(event.date)
+        }));
+    } catch (e) {
+        console.error('Error decoding events from URL:', e);
+        return null;
+    }
+}
+
+// Function to update URL with events
+function updateURLWithEvents() {
+    if (!shareableModeEnabled) return;
+    
+    // Collect events from both ordered timeline and unsorted events
+    const orderedTimelineContainer = document.getElementById("ordered-timeline");
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    
+    const orderedEvents = Array.from(orderedTimelineContainer.children).map(eventElement => ({
+        name: eventElement.querySelector('.event-text').textContent,
+        date: eventElement.dataset.date
+    }));
+    
+    const unsortedEvents = Array.from(unsortedEventsContainer.children).map(eventElement => ({
+        name: eventElement.querySelector('.event-text').textContent,
+        date: eventElement.dataset.date
+    }));
+    
+    // Combine all events (ordered timeline + unsorted)
+    const allEvents = [...orderedEvents, ...unsortedEvents];
+    
+    const url = new URL(window.location);
+    
+    // Handle empty event list with special indicator
+    if (allEvents.length === 0) {
+        url.searchParams.set('events', 'EMPTY');
+    } else {
+        const encodedEvents = encodeEventsToURL(allEvents);
+        url.searchParams.set('events', encodedEvents);
+    }
+    
+    window.history.replaceState({}, '', url);
+}
+
+// Function to load events from URL
+function loadEventsFromURL() {
+    const url = new URL(window.location);
+    const encodedEvents = url.searchParams.get('events');
+    
+    if (encodedEvents) {
+        // Handle intentionally empty list
+        if (encodedEvents === 'EMPTY') {
+            // Clear existing unsorted events
+            const unsortedEventsContainer = document.getElementById("unsorted-events");
+            unsortedEventsContainer.innerHTML = "";
+            
+            // Update totalPossibleScore
+            totalPossibleScore = 0;
+            updateScoreDisplay();
+            
+            // Enable shareable mode automatically
+            shareableModeEnabled = true;
+            const shareableToggle = document.getElementById('shareable-toggle');
+            if (shareableToggle) {
+                shareableToggle.classList.add('active');
+            }
+            updateShareableButtonText(true);
+            
+            // Enable copy button
+            const copyLinkBtn = document.getElementById('copy-link-btn');
+            if (copyLinkBtn) {
+                copyLinkBtn.disabled = false;
+            }
+            
+            return true;
+        }
+        
+        const events = decodeEventsFromURL(encodedEvents);
+        if (events && events.length > 0) {
+            // Clear existing unsorted events
+            const unsortedEventsContainer = document.getElementById("unsorted-events");
+            unsortedEventsContainer.innerHTML = "";
+            
+            // Load events from URL (don't populate eventsData here - it will be loaded from JSON)
+            events.forEach(event => createEventElement(event, unsortedEventsContainer));
+            
+            // Update totalPossibleScore
+            totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+            updateScoreDisplay();
+            
+            // Enable shareable mode automatically
+            shareableModeEnabled = true;
+            const shareableToggle = document.getElementById('shareable-toggle');
+            if (shareableToggle) {
+                shareableToggle.classList.add('active');
+            }
+            updateShareableButtonText(true);
+            
+            // Enable copy button
+            const copyLinkBtn = document.getElementById('copy-link-btn');
+            if (copyLinkBtn) {
+                copyLinkBtn.disabled = false;
+            }
+            
+            return true;
+        }
+    }
+    return false;
+}
+
+// Shareable toggle button functionality
+(function() {
+    const shareableToggle = document.getElementById('shareable-toggle');
+    const copyLinkBtn = document.getElementById('copy-link-btn');
+    
+    if (!shareableToggle) {
+        console.warn('Shareable toggle button not found');
+        return;
+    }
+    
+    if (!copyLinkBtn) {
+        console.warn('Copy link button not found');
+        return;
+    }
+    
+    // Initially disable copy button if shareable mode is off
+    copyLinkBtn.disabled = !shareableModeEnabled;
+    updateShareableButtonText(shareableModeEnabled);
+    
+    shareableToggle.addEventListener('click', () => {
+        shareableModeEnabled = !shareableModeEnabled;
+        
+        if (shareableModeEnabled) {
+            shareableToggle.classList.add('active');
+            copyLinkBtn.disabled = false;
+            updateShareableButtonText(true);
+            updateURLWithEvents();
+        } else {
+            shareableToggle.classList.remove('active');
+            copyLinkBtn.disabled = true;
+            updateShareableButtonText(false);
+            // Remove events parameter from URL
+            const url = new URL(window.location);
+            url.searchParams.delete('events');
+            window.history.replaceState({}, '', url);
+        }
+    });
+    
+    // Copy link button functionality
+    copyLinkBtn.addEventListener('click', () => {
+        if (!shareableModeEnabled) return;
+        
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            // Visual feedback - change button text temporarily
+            const originalText = copyLinkBtn.textContent;
+            copyLinkBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyLinkBtn.textContent = originalText;
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy link:', err);
+            alert('Failed to copy link. Please copy the URL from the address bar.');
+        });
+    });
 })();
 
 let playerScore = 0;
@@ -44,33 +260,39 @@ let eventsData = [];
 
 // Function to create and add events dynamically
 function loadEvents() {
+    // First check if there are events in the URL
+    const hasURLEvents = loadEventsFromURL();
+    
+    // Always load the full events.json dataset for randomize functionality
     fetch('events.json')
         .then(response => response.json())
         .then(data => {
             eventsData.length = 0; // Clear existing array
             eventsData.push(...data); // Load new data
+            
+            // If no URL events, load initial random events
+            if (!hasURLEvents) {
+                const randomEvents = shuffleArray([...eventsData]).slice(0, 7);
+                const unsortedEventsContainer = document.getElementById("unsorted-events");
+                unsortedEventsContainer.innerHTML = ""; // Clear existing events
+                randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
-            // Load the initial random events
-            const randomEvents = shuffleArray(eventsData).slice(0, 7);
-
-            const unsortedEventsContainer = document.getElementById("unsorted-events");
-            unsortedEventsContainer.innerHTML = ""; // Clear existing events
-            randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
-
-            // Set total possible score to 7
-            totalPossibleScore = 7;
-            updateScoreDisplay();
+                // Set total possible score to 7
+                totalPossibleScore = 7;
+                updateScoreDisplay();
+            }
         })
         .catch(error => console.error("Error loading events:", error));
 }
 
 // Function to shuffle the array (Fisher-Yates algorithm)
 function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
+    const shuffled = [...array]; // Create a copy to avoid mutating the original
+    for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Swap elements
     }
-    return array;
+    return shuffled;
 }
 
 // Function to randomize events on button click
@@ -87,6 +309,9 @@ function randomizeEvents() {
     // Update totalPossibleScore based on the unsorted events
     totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
+    
+    // Update URL if shareable mode is enabled
+    updateURLWithEvents();
 }
 
 // Add event listener to Randomize button
@@ -112,6 +337,9 @@ function clearAllEvents() {
     // Update total possible score based on the remaining events in both lists
     totalPossibleScore = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
     updateScoreDisplay();
+    
+    // Update URL if shareable mode is enabled
+    updateURLWithEvents();
 }
 
 // Add event listener to Clear All button
@@ -192,6 +420,9 @@ function removeEvent(eventElement, eventName) {
     // Update totalPossibleScore based on the remaining events
     totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
+    
+    // Update URL if shareable mode is enabled
+    updateURLWithEvents();
 }
 
 // Add a new event from input
@@ -215,6 +446,9 @@ function addEvent() {
     // Clear input fields
     document.getElementById("event-name").value = "";
     document.getElementById("event-date").value = "";
+    
+    // Update URL if shareable mode is enabled
+    updateURLWithEvents();
 }
 
 // Attach click event listeners
