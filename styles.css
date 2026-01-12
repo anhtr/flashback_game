@@ -54,13 +54,20 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s ease, color 0.3s ease;
+    padding-top: 20px;
 }
 
-/* Theme toggle button in upper right corner */
+/* Top controls container */
+.top-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+}
+
+/* Theme toggle button on the right */
 .theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
     padding: 10px 20px;
     background-color: var(--button-bg);
     color: var(--button-text);
@@ -69,20 +76,15 @@ body {
     cursor: pointer;
     font-size: 14px;
     transition: all 0.3s ease;
-    z-index: 1000;
 }
 
 .theme-toggle:hover {
     opacity: 0.8;
 }
 
-/* Shareable button group below theme toggle */
+/* Shareable button group on the left */
 .shareable-button-group {
-    position: fixed;
-    top: 65px;
-    right: 20px;
     display: flex;
-    z-index: 1000;
 }
 
 .shareable-toggle {

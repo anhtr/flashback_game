@@ -92,9 +92,16 @@ function updateURLWithEvents() {
         date: eventElement.dataset.date
     }));
     
-    const encodedEvents = encodeEventsToURL(events);
     const url = new URL(window.location);
-    url.searchParams.set('events', encodedEvents);
+    
+    // Handle empty event list with special indicator
+    if (events.length === 0) {
+        url.searchParams.set('events', 'EMPTY');
+    } else {
+        const encodedEvents = encodeEventsToURL(events);
+        url.searchParams.set('events', encodedEvents);
+    }
+    
     window.history.replaceState({}, '', url);
 }
 
@@ -104,6 +111,32 @@ function loadEventsFromURL() {
     const encodedEvents = url.searchParams.get('events');
     
     if (encodedEvents) {
+        // Handle intentionally empty list
+        if (encodedEvents === 'EMPTY') {
+            // Clear existing unsorted events
+            const unsortedEventsContainer = document.getElementById("unsorted-events");
+            unsortedEventsContainer.innerHTML = "";
+            
+            // Update totalPossibleScore
+            totalPossibleScore = 0;
+            updateScoreDisplay();
+            
+            // Enable shareable mode automatically
+            shareableModeEnabled = true;
+            const shareableToggle = document.getElementById('shareable-toggle');
+            if (shareableToggle) {
+                shareableToggle.classList.add('active');
+            }
+            
+            // Enable copy button
+            const copyLinkBtn = document.getElementById('copy-link-btn');
+            if (copyLinkBtn) {
+                copyLinkBtn.disabled = false;
+            }
+            
+            return true;
+        }
+        
         const events = decodeEventsFromURL(encodedEvents);
         if (events && events.length > 0) {
             // Clear existing unsorted events
@@ -274,6 +307,9 @@ function clearAllEvents() {
     // Update total possible score based on the remaining events in both lists
     totalPossibleScore = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
     updateScoreDisplay();
+    
+    // Update URL if shareable mode is enabled
+    updateURLWithEvents();
 }
 
 // Add event listener to Clear All button
