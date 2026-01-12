@@ -1,3 +1,42 @@
+// Theme toggle functionality
+(function() {
+    const themeToggle = document.getElementById('theme-toggle');
+    
+    // Exit early if theme toggle element doesn't exist
+    if (!themeToggle) {
+        console.warn('Theme toggle button not found');
+        return;
+    }
+    
+    // Set dark mode as default, or use saved preference
+    const savedTheme = localStorage.getItem('theme');
+    const currentTheme = savedTheme || 'dark';
+    
+    // Apply the theme
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    updateToggleButton(currentTheme);
+    
+    // Toggle theme on button click
+    themeToggle.addEventListener('click', () => {
+        const activeTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateToggleButton(newTheme);
+    });
+    
+    function updateToggleButton(theme) {
+        if (theme === 'dark') {
+            themeToggle.innerHTML = '☀️ Light';
+            themeToggle.setAttribute('aria-label', 'Switch to light mode');
+        } else {
+            themeToggle.innerHTML = '🌙 Dark';
+            themeToggle.setAttribute('aria-label', 'Switch to dark mode');
+        }
+    }
+})();
+
 let playerScore = 0;
 let totalPossibleScore = 0;
 let selectedEvent = null;
