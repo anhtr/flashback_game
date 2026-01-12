@@ -110,6 +110,10 @@ function loadEventsFromURL() {
             const unsortedEventsContainer = document.getElementById("unsorted-events");
             unsortedEventsContainer.innerHTML = "";
             
+            // Populate eventsData with the decoded events so randomize works
+            eventsData.length = 0;
+            eventsData.push(...events);
+            
             // Load events from URL
             events.forEach(event => createEventElement(event, unsortedEventsContainer));
             
@@ -124,6 +128,12 @@ function loadEventsFromURL() {
                 shareableToggle.classList.add('active');
             }
             
+            // Enable copy button
+            const copyLinkBtn = document.getElementById('copy-link-btn');
+            if (copyLinkBtn) {
+                copyLinkBtn.disabled = false;
+            }
+            
             return true;
         }
     }
@@ -133,25 +143,54 @@ function loadEventsFromURL() {
 // Shareable toggle button functionality
 (function() {
     const shareableToggle = document.getElementById('shareable-toggle');
+    const copyLinkBtn = document.getElementById('copy-link-btn');
     
     if (!shareableToggle) {
         console.warn('Shareable toggle button not found');
         return;
     }
     
+    if (!copyLinkBtn) {
+        console.warn('Copy link button not found');
+        return;
+    }
+    
+    // Initially disable copy button if shareable mode is off
+    copyLinkBtn.disabled = !shareableModeEnabled;
+    
     shareableToggle.addEventListener('click', () => {
         shareableModeEnabled = !shareableModeEnabled;
         
         if (shareableModeEnabled) {
             shareableToggle.classList.add('active');
+            copyLinkBtn.disabled = false;
             updateURLWithEvents();
         } else {
             shareableToggle.classList.remove('active');
+            copyLinkBtn.disabled = true;
             // Remove events parameter from URL
             const url = new URL(window.location);
             url.searchParams.delete('events');
             window.history.replaceState({}, '', url);
         }
+    });
+    
+    // Copy link button functionality
+    copyLinkBtn.addEventListener('click', () => {
+        if (!shareableModeEnabled) return;
+        
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            // Visual feedback - change button text temporarily
+            const originalText = copyLinkBtn.textContent;
+            copyLinkBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyLinkBtn.textContent = originalText;
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy link:', err);
+            alert('Failed to copy link. Please copy the URL from the address bar.');
+        });
     });
 })();
 

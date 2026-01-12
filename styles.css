@@ -76,20 +76,25 @@ body {
     opacity: 0.8;
 }
 
-/* Shareable toggle button below theme toggle */
-.shareable-toggle {
+/* Shareable button group below theme toggle */
+.shareable-button-group {
     position: fixed;
     top: 65px;
     right: 20px;
+    display: flex;
+    z-index: 1000;
+}
+
+.shareable-toggle {
     padding: 10px 20px;
     background-color: var(--button-bg);
     color: var(--button-text);
     border: 1px solid var(--button-border);
-    border-radius: 5px;
+    border-radius: 5px 0 0 5px;
+    border-right: none;
     cursor: pointer;
     font-size: 14px;
     transition: all 0.3s ease;
-    z-index: 1000;
 }
 
 .shareable-toggle:hover {
@@ -99,6 +104,26 @@ body {
 .shareable-toggle.active {
     background-color: var(--event-selected-bg);
     border-color: var(--event-selected-border);
+}
+
+.copy-link-btn {
+    padding: 10px 20px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--button-border);
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.copy-link-btn:hover {
+    opacity: 0.8;
+}
+
+.copy-link-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 .no-select {
     -webkit-user-select: none;
