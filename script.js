@@ -37,6 +37,124 @@
     }
 })();
 
+// Shareable mode functionality
+let shareableModeEnabled = false;
+
+// Function to convert date from yyyy-mm-dd to hex
+function dateToHex(dateStr) {
+    // Remove hyphens: yyyy-mm-dd -> yyyymmdd
+    const compactDate = dateStr.replace(/-/g, '');
+    // Convert to number and then to hex
+    const numDate = parseInt(compactDate, 10);
+    return numDate.toString(16);
+}
+
+// Function to convert hex back to yyyy-mm-dd
+function hexToDate(hexStr) {
+    // Convert hex to number
+    const numDate = parseInt(hexStr, 16);
+    // Convert to string and pad to 8 digits
+    const dateStr = numDate.toString().padStart(8, '0');
+    // Format as yyyy-mm-dd
+    return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+}
+
+// Function to encode events to URL format
+function encodeEventsToURL(events) {
+    const encodedEvents = events.map(event => ({
+        name: event.name,
+        date: dateToHex(event.date)
+    }));
+    return encodeURIComponent(JSON.stringify(encodedEvents));
+}
+
+// Function to decode events from URL
+function decodeEventsFromURL(encodedStr) {
+    try {
+        const decoded = JSON.parse(decodeURIComponent(encodedStr));
+        return decoded.map(event => ({
+            name: event.name,
+            date: hexToDate(event.date)
+        }));
+    } catch (e) {
+        console.error('Error decoding events from URL:', e);
+        return null;
+    }
+}
+
+// Function to update URL with events
+function updateURLWithEvents() {
+    if (!shareableModeEnabled) return;
+    
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    const events = Array.from(unsortedEventsContainer.children).map(eventElement => ({
+        name: eventElement.querySelector('.event-text').textContent,
+        date: eventElement.dataset.date
+    }));
+    
+    const encodedEvents = encodeEventsToURL(events);
+    const url = new URL(window.location);
+    url.searchParams.set('events', encodedEvents);
+    window.history.replaceState({}, '', url);
+}
+
+// Function to load events from URL
+function loadEventsFromURL() {
+    const url = new URL(window.location);
+    const encodedEvents = url.searchParams.get('events');
+    
+    if (encodedEvents) {
+        const events = decodeEventsFromURL(encodedEvents);
+        if (events && events.length > 0) {
+            // Clear existing unsorted events
+            const unsortedEventsContainer = document.getElementById("unsorted-events");
+            unsortedEventsContainer.innerHTML = "";
+            
+            // Load events from URL
+            events.forEach(event => createEventElement(event, unsortedEventsContainer));
+            
+            // Update totalPossibleScore
+            totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+            updateScoreDisplay();
+            
+            // Enable shareable mode automatically
+            shareableModeEnabled = true;
+            const shareableToggle = document.getElementById('shareable-toggle');
+            if (shareableToggle) {
+                shareableToggle.classList.add('active');
+            }
+            
+            return true;
+        }
+    }
+    return false;
+}
+
+// Shareable toggle button functionality
+(function() {
+    const shareableToggle = document.getElementById('shareable-toggle');
+    
+    if (!shareableToggle) {
+        console.warn('Shareable toggle button not found');
+        return;
+    }
+    
+    shareableToggle.addEventListener('click', () => {
+        shareableModeEnabled = !shareableModeEnabled;
+        
+        if (shareableModeEnabled) {
+            shareableToggle.classList.add('active');
+            updateURLWithEvents();
+        } else {
+            shareableToggle.classList.remove('active');
+            // Remove events parameter from URL
+            const url = new URL(window.location);
+            url.searchParams.delete('events');
+            window.history.replaceState({}, '', url);
+        }
+    });
+})();
+
 let playerScore = 0;
 let totalPossibleScore = 0;
 let selectedEvent = null;
@@ -44,6 +162,11 @@ let eventsData = [];
 
 // Function to create and add events dynamically
 function loadEvents() {
+    // First check if there are events in the URL
+    if (loadEventsFromURL()) {
+        return; // If events loaded from URL, don't load from JSON
+    }
+    
     fetch('events.json')
         .then(response => response.json())
         .then(data => {
@@ -87,6 +210,9 @@ function randomizeEvents() {
     // Update totalPossibleScore based on the unsorted events
     totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
+    
+    // Update URL if shareable mode is enabled
+    updateURLWithEvents();
 }
 
 // Add event listener to Randomize button
@@ -192,6 +318,9 @@ function removeEvent(eventElement, eventName) {
     // Update totalPossibleScore based on the remaining events
     totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
+    
+    // Update URL if shareable mode is enabled
+    updateURLWithEvents();
 }
 
 // Add a new event from input
@@ -215,6 +344,9 @@ function addEvent() {
     // Clear input fields
     document.getElementById("event-name").value = "";
     document.getElementById("event-date").value = "";
+    
+    // Update URL if shareable mode is enabled
+    updateURLWithEvents();
 }
 
 // Attach click event listeners

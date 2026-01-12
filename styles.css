@@ -75,6 +75,31 @@ body {
 .theme-toggle:hover {
     opacity: 0.8;
 }
+
+/* Shareable toggle button below theme toggle */
+.shareable-toggle {
+    position: fixed;
+    top: 65px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--button-border);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.shareable-toggle:hover {
+    opacity: 0.8;
+}
+
+.shareable-toggle.active {
+    background-color: var(--event-selected-bg);
+    border-color: var(--event-selected-border);
+}
 .no-select {
     -webkit-user-select: none;
     -moz-user-select: none;
