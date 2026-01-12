@@ -110,11 +110,7 @@ function loadEventsFromURL() {
             const unsortedEventsContainer = document.getElementById("unsorted-events");
             unsortedEventsContainer.innerHTML = "";
             
-            // Populate eventsData with the decoded events so randomize works
-            eventsData.length = 0;
-            eventsData.push(...events);
-            
-            // Load events from URL
+            // Load events from URL (don't populate eventsData here - it will be loaded from JSON)
             events.forEach(event => createEventElement(event, unsortedEventsContainer));
             
             // Update totalPossibleScore
@@ -202,37 +198,38 @@ let eventsData = [];
 // Function to create and add events dynamically
 function loadEvents() {
     // First check if there are events in the URL
-    if (loadEventsFromURL()) {
-        return; // If events loaded from URL, don't load from JSON
-    }
+    const hasURLEvents = loadEventsFromURL();
     
+    // Always load the full events.json dataset for randomize functionality
     fetch('events.json')
         .then(response => response.json())
         .then(data => {
             eventsData.length = 0; // Clear existing array
             eventsData.push(...data); // Load new data
+            
+            // If no URL events, load initial random events
+            if (!hasURLEvents) {
+                const randomEvents = shuffleArray([...eventsData]).slice(0, 7);
+                const unsortedEventsContainer = document.getElementById("unsorted-events");
+                unsortedEventsContainer.innerHTML = ""; // Clear existing events
+                randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
-            // Load the initial random events
-            const randomEvents = shuffleArray(eventsData).slice(0, 7);
-
-            const unsortedEventsContainer = document.getElementById("unsorted-events");
-            unsortedEventsContainer.innerHTML = ""; // Clear existing events
-            randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
-
-            // Set total possible score to 7
-            totalPossibleScore = 7;
-            updateScoreDisplay();
+                // Set total possible score to 7
+                totalPossibleScore = 7;
+                updateScoreDisplay();
+            }
         })
         .catch(error => console.error("Error loading events:", error));
 }
 
 // Function to shuffle the array (Fisher-Yates algorithm)
 function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
+    const shuffled = [...array]; // Create a copy to avoid mutating the original
+    for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Swap elements
     }
-    return array;
+    return shuffled;
 }
 
 // Function to randomize events on button click
