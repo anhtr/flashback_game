@@ -267,6 +267,52 @@ function shuffleUnsortedEvents() {
 // Add event listener to Shuffle button
 document.getElementById("shuffle-btn").addEventListener("click", shuffleUnsortedEvents);
 
+// Function to reset - move all events from ordered timeline back to unsorted events and shuffle
+function resetEvents() {
+    const orderedTimelineContainer = document.getElementById("ordered-timeline");
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    const orderedEvents = Array.from(orderedTimelineContainer.children);
+    
+    // Move all events from ordered timeline to unsorted events
+    orderedEvents.forEach(eventElement => {
+        // Remove correct/incorrect classes
+        eventElement.classList.remove('correct', 'incorrect', 'placed');
+        
+        // Show remove button again
+        let removeButton = eventElement.querySelector(".remove-button");
+        if (removeButton) removeButton.style.display = "";
+        
+        // Hide the date again
+        let eventDate = eventElement.querySelector(".event-Date");
+        if (eventDate) {
+            eventDate.classList.add("hidden");
+        }
+        
+        // Reset initial answer tracking
+        delete eventElement.dataset.initialAnswer;
+        
+        // Move to unsorted events container
+        unsortedEventsContainer.appendChild(eventElement);
+    });
+    
+    // Reset player score
+    playerScore = 0;
+    
+    // Update total possible score
+    totalPossibleScore = unsortedEventsContainer.children.length;
+    updateScoreDisplay();
+    
+    // Clear any selected event and placement slots
+    selectedEvent = null;
+    clearPlacementSlots();
+    
+    // Shuffle the unsorted events
+    shuffleUnsortedEvents();
+}
+
+// Add event listener to Reset button
+document.getElementById("reset-btn").addEventListener("click", resetEvents);
+
 // Function to clear all events
 function clearAllEvents() {
     // Clear unsorted events
