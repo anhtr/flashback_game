@@ -317,6 +317,33 @@ function randomizeEvents() {
 // Add event listener to Randomize button
 document.getElementById("randomize-btn").addEventListener("click", randomizeEvents);
 
+// Function to shuffle the position of unsorted events
+function shuffleUnsortedEvents() {
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    const events = Array.from(unsortedEventsContainer.children);
+    
+    if (events.length === 0) {
+        return; // Nothing to shuffle
+    }
+    
+    // Shuffle the events array
+    const shuffledEvents = shuffleArray(events);
+    
+    // Clear the container and re-append in new order
+    unsortedEventsContainer.innerHTML = "";
+    shuffledEvents.forEach(event => unsortedEventsContainer.appendChild(event));
+    
+    // Clear any selected event and placement slots
+    selectedEvent = null;
+    clearPlacementSlots();
+    
+    // Update URL if shareable mode is enabled
+    updateURLWithEvents();
+}
+
+// Add event listener to Shuffle button
+document.getElementById("shuffle-btn").addEventListener("click", shuffleUnsortedEvents);
+
 // Function to clear all events
 function clearAllEvents() {
     // Clear unsorted events
