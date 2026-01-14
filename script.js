@@ -72,6 +72,12 @@ function decodeEventsFromURL(encodedStr) {
     }
 }
 
+// Function to clear URL parameters and return to data-less state
+function clearURLParameters() {
+    const cleanUrl = new URL(window.location.origin + window.location.pathname);
+    window.history.replaceState({}, '', cleanUrl);
+}
+
 // Function to generate shareable link with current state
 function generateShareableLink() {
     // Collect events from both ordered timeline and unsorted events
@@ -121,8 +127,7 @@ function loadEventsFromURL() {
             updateScoreDisplay();
             
             // Clear URL parameters to return to data-less state
-            const cleanUrl = new URL(window.location.origin + window.location.pathname);
-            window.history.replaceState({}, '', cleanUrl);
+            clearURLParameters();
             
             return true;
         }
@@ -141,8 +146,7 @@ function loadEventsFromURL() {
             updateScoreDisplay();
             
             // Clear URL parameters to return to data-less state
-            const cleanUrl = new URL(window.location.origin + window.location.pathname);
-            window.history.replaceState({}, '', cleanUrl);
+            clearURLParameters();
             
             return true;
         }
@@ -173,7 +177,7 @@ function loadEventsFromURL() {
             }, 2000);
         }).catch(err => {
             console.error('Failed to copy link:', err);
-            alert('Failed to copy link. Please copy the URL manually:\n\n' + shareableLink);
+            alert('Failed to copy link. Please copy this shareable link manually:\n\n' + shareableLink);
         });
     });
 })();
