@@ -54,42 +54,25 @@ function updateShareableButtonText(enabled) {
     }
 }
 
-// Function to convert date from yyyy-mm-dd to hex
-function dateToHex(dateStr) {
-    // Remove hyphens: yyyy-mm-dd -> yyyymmdd
-    const compactDate = dateStr.replace(/-/g, '');
-    // Convert to number and then to hex
-    const numDate = parseInt(compactDate, 10);
-    return numDate.toString(16);
-}
-
-// Function to convert hex back to yyyy-mm-dd
-function hexToDate(hexStr) {
-    // Convert hex to number
-    const numDate = parseInt(hexStr, 16);
-    // Convert to string and pad to 8 digits
-    const dateStr = numDate.toString().padStart(8, '0');
-    // Format as yyyy-mm-dd
-    return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-}
-
-// Function to encode events to URL format
+// Function to encode events to URL format using lz-string compression
 function encodeEventsToURL(events) {
-    const encodedEvents = events.map(event => ({
-        name: event.name,
-        date: dateToHex(event.date)
-    }));
-    return encodeURIComponent(JSON.stringify(encodedEvents));
+    // Keep dates in yyyy-mm-dd format (no hex conversion needed)
+    const eventsJSON = JSON.stringify(events);
+    // Use lz-string to compress and encode for URI
+    return LZString.compressToEncodedURIComponent(eventsJSON);
 }
 
 // Function to decode events from URL
 function decodeEventsFromURL(encodedStr) {
     try {
-        const decoded = JSON.parse(decodeURIComponent(encodedStr));
-        return decoded.map(event => ({
-            name: event.name,
-            date: hexToDate(event.date)
-        }));
+        // Decompress using lz-string
+        const decompressed = LZString.decompressFromEncodedURIComponent(encodedStr);
+        if (!decompressed) {
+            console.error('Error decompressing events from URL');
+            return null;
+        }
+        // Parse the JSON
+        return JSON.parse(decompressed);
     } catch (e) {
         console.error('Error decoding events from URL:', e);
         return null;
