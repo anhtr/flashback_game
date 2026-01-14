@@ -56,6 +56,11 @@ function updateShareableButtonText(enabled) {
 
 // Function to encode events to URL format using lz-string compression
 function encodeEventsToURL(events) {
+    // Check if LZString is available
+    if (typeof LZString === 'undefined') {
+        console.error('LZString library not loaded');
+        return null;
+    }
     // Keep dates in yyyy-mm-dd format (no hex conversion needed)
     const eventsJSON = JSON.stringify(events);
     // Use lz-string to compress and encode for URI
@@ -65,6 +70,11 @@ function encodeEventsToURL(events) {
 // Function to decode events from URL
 function decodeEventsFromURL(encodedStr) {
     try {
+        // Check if LZString is available
+        if (typeof LZString === 'undefined') {
+            console.error('LZString library not loaded');
+            return null;
+        }
         // Decompress using lz-string
         const decompressed = LZString.decompressFromEncodedURIComponent(encodedStr);
         if (!decompressed) {
