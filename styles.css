@@ -82,38 +82,13 @@ body {
     opacity: 0.8;
 }
 
-/* Shareable button group on the left */
-.shareable-button-group {
-    display: flex;
-}
-
-.shareable-toggle {
-    padding: 10px 20px;
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: 1px solid var(--button-border);
-    border-radius: 5px 0 0 5px;
-    border-right: none;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.shareable-toggle:hover {
-    opacity: 0.8;
-}
-
-.shareable-toggle.active {
-    background-color: var(--event-selected-bg);
-    border-color: var(--event-selected-border);
-}
-
+/* Copy link button */
 .copy-link-btn {
     padding: 10px 20px;
     background-color: var(--button-bg);
     color: var(--button-text);
     border: 1px solid var(--button-border);
-    border-radius: 0 5px 5px 0;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
     transition: all 0.3s ease;
@@ -121,11 +96,6 @@ body {
 
 .copy-link-btn:hover {
     opacity: 0.8;
-}
-
-.copy-link-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 .no-select {
     -webkit-user-select: none;
