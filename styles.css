@@ -214,7 +214,8 @@ button:hover {
 }
 
 input[type="text"],
-input[type="date"] {
+input[type="date"],
+input[type="file"] {
     background-color: var(--input-bg);
     color: var(--input-text);
     border: 1px solid var(--input-border);
@@ -225,6 +226,22 @@ input[type="date"] {
 
 input[type="text"]::placeholder {
     color: var(--placeholder-color);
+}
+
+/* File input specific styling */
+input[type="file"]::file-selector-button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--button-border);
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: all 0.3s ease;
+}
+
+input[type="file"]::file-selector-button:hover {
+    opacity: 0.8;
 }
 
 /* Toast notification styles */

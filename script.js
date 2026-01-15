@@ -465,6 +465,126 @@ function addEvent() {
     document.getElementById("event-date").value = "";
 }
 
+// Import events from CSV file
+function importCSV() {
+    const fileInput = document.getElementById("csv-file");
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert("Please select a CSV file to import.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        parseCSV(text);
+    };
+    reader.onerror = function() {
+        alert("Error reading file. Please try again.");
+    };
+    reader.readAsText(file);
+}
+
+// Helper function to parse a single CSV line, handling quoted values
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    // Push the last field
+    result.push(current.trim());
+    
+    return result;
+}
+
+// Parse CSV text and add events
+function parseCSV(text) {
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+    
+    if (lines.length === 0) {
+        alert("The CSV file is empty.");
+        return;
+    }
+
+    let importedCount = 0;
+    let errorCount = 0;
+    const errors = [];
+
+    lines.forEach((line, index) => {
+        // Parse CSV line handling quoted values
+        const parts = parseCSVLine(line);
+        
+        if (parts.length < 2) {
+            errorCount++;
+            errors.push(`Line ${index + 1}: Not enough columns (expected 2, got ${parts.length})`);
+            return;
+        }
+
+        const eventName = parts[0].trim();
+        const eventDate = parts[1].trim();
+
+        // Validate event name
+        if (eventName === "") {
+            errorCount++;
+            errors.push(`Line ${index + 1}: Event name is empty`);
+            return;
+        }
+
+        // Validate date format (YYYY-MM-DD)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(eventDate)) {
+            errorCount++;
+            errors.push(`Line ${index + 1}: Invalid date format (expected YYYY-MM-DD, got "${eventDate}")`);
+            return;
+        }
+
+        // Validate date is a real date
+        const date = new Date(eventDate);
+        if (isNaN(date.getTime())) {
+            errorCount++;
+            errors.push(`Line ${index + 1}: Invalid date "${eventDate}"`);
+            return;
+        }
+
+        // Add the event
+        let newEvent = { name: eventName, date: eventDate };
+        eventsData.push(newEvent);
+        createEventElement(newEvent, document.getElementById("unsorted-events"));
+        importedCount++;
+    });
+
+    // Update totalPossibleScore based on the unsorted events
+    totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
+    updateScoreDisplay();
+
+    // Clear file input
+    document.getElementById("csv-file").value = "";
+
+    // Show results
+    let message = `Successfully imported ${importedCount} event(s).`;
+    if (errorCount > 0) {
+        message += `\n\n${errorCount} error(s) occurred:\n${errors.slice(0, 5).join('\n')}`;
+        if (errors.length > 5) {
+            message += `\n... and ${errors.length - 5} more error(s)`;
+        }
+    }
+    alert(message);
+}
+
 // Attach click event listeners
 function addClickListeners(event) {
     event.addEventListener('click', (e) => {

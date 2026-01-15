@@ -33,6 +33,10 @@
         <input type="text" id="event-name" placeholder="Event Name">
         <input type="date" id="event-date">
         <button onclick="addEvent()">Add Event</button>
+    <h2>Import Events from CSV</h2>
+        <p><i>CSV file should contain two columns: event name and date (YYYY-MM-DD format)</i></p>
+        <input type="file" id="csv-file" accept=".csv">
+        <button onclick="importCSV()">Import CSV</button>
     <script src="script.js"></script>
 </body>
 </html>
