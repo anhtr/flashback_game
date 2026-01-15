@@ -37,6 +37,68 @@
     }
 })();
 
+// Edit mode toggle functionality
+(function() {
+    const editModeToggle = document.getElementById('edit-mode-toggle');
+    
+    // Exit early if edit mode toggle element doesn't exist
+    if (!editModeToggle) {
+        console.warn('Edit mode toggle button not found');
+        return;
+    }
+    
+    // Edit mode is off by default, or use saved preference
+    const savedEditMode = localStorage.getItem('editMode');
+    const currentEditMode = savedEditMode ?? 'off';
+    
+    // Apply the edit mode
+    document.body.setAttribute('data-edit-mode', currentEditMode);
+    updateEditModeButton(currentEditMode);
+    updateRemoveButtonsVisibility(currentEditMode);
+    
+    // Toggle edit mode on button click
+    editModeToggle.addEventListener('click', () => {
+        const activeEditMode = document.body.getAttribute('data-edit-mode');
+        const newEditMode = activeEditMode === 'on' ? 'off' : 'on';
+        
+        document.body.setAttribute('data-edit-mode', newEditMode);
+        localStorage.setItem('editMode', newEditMode);
+        updateEditModeButton(newEditMode);
+        updateRemoveButtonsVisibility(newEditMode);
+    });
+    
+    function updateEditModeButton(mode) {
+        if (mode === 'on') {
+            editModeToggle.innerHTML = 'Edit';
+            editModeToggle.setAttribute('aria-label', 'Edit mode is on, click to turn off');
+        } else {
+            editModeToggle.innerHTML = 'Edit';
+            editModeToggle.setAttribute('aria-label', 'Edit mode is off, click to turn on');
+        }
+    }
+    
+    function updateRemoveButtonsVisibility(mode) {
+        const removeButtons = document.querySelectorAll('.remove-button');
+        removeButtons.forEach(button => {
+            if (mode === 'on') {
+                // Only show remove button if the event is still in the unsorted pile
+                // (not yet placed in the ordered timeline)
+                const event = button.closest('.event');
+                if (event && event.parentNode.id === 'unsorted-events') {
+                    button.style.display = '';
+                }
+            } else {
+                button.style.display = 'none';
+            }
+        });
+    }
+    
+    // Make the update function globally accessible via a namespace
+    // This is needed when new events are created dynamically
+    window.EditMode = window.EditMode || {};
+    window.EditMode.updateRemoveButtonsVisibility = updateRemoveButtonsVisibility;
+})();
+
 // Function to encode events to URL format using lz-string compression
 function encodeEventsToURL(events) {
     // Check if LZString is available
@@ -398,6 +460,12 @@ function createEventElement(event, container) {
         e.stopPropagation(); // Prevent event selection when clicking remove
         removeEvent(eventElement, event.name);
     });
+    
+    // Hide remove button if edit mode is off
+    const editMode = document.body.getAttribute('data-edit-mode');
+    if (editMode !== 'on') {
+        removeButton.style.display = 'none';
+    }
 
     // Hidden date span (for later reveal)
     let eventDate = document.createElement("span");
