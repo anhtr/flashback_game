@@ -546,10 +546,9 @@ function parseCSV(text) {
             return;
         }
         
+        // Warn about extra columns but continue processing
         if (parts.length > 2) {
-            errorCount++;
-            errors.push(`Line ${index + 1}: Too many columns (expected 2, got ${parts.length}). Extra columns will be ignored.`);
-            // Continue processing with only first 2 columns
+            console.warn(`Line ${index + 1}: Extra columns detected (got ${parts.length}, expected 2). Only first 2 columns will be used.`);
         }
 
         const eventName = parts[0];
