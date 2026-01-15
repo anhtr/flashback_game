@@ -494,9 +494,16 @@ function parseCSVLine(line) {
     
     for (let i = 0; i < line.length; i++) {
         const char = line[i];
+        const nextChar = i < line.length - 1 ? line[i + 1] : null;
         
         if (char === '"') {
-            inQuotes = !inQuotes;
+            // Handle escaped quotes (two consecutive quotes)
+            if (inQuotes && nextChar === '"') {
+                current += '"';
+                i++; // Skip the next quote
+            } else {
+                inQuotes = !inQuotes;
+            }
         } else if (char === ',' && !inQuotes) {
             result.push(current.trim());
             current = '';
@@ -513,7 +520,7 @@ function parseCSVLine(line) {
 
 // Parse CSV text and add events
 function parseCSV(text) {
-    const lines = text.split('\n').filter(line => line.trim() !== '');
+    const lines = text.split('\n');
     
     if (lines.length === 0) {
         alert("The CSV file is empty.");
@@ -525,6 +532,11 @@ function parseCSV(text) {
     const errors = [];
 
     lines.forEach((line, index) => {
+        // Skip empty lines but keep line numbers accurate
+        if (line.trim() === '') {
+            return;
+        }
+        
         // Parse CSV line handling quoted values
         const parts = parseCSVLine(line);
         
