@@ -30,9 +30,11 @@
         if (theme === 'dark') {
             themeToggle.innerHTML = '<span class="btn-emoji">🌙</span><span class="btn-text"> Dark mode: ON</span>';
             themeToggle.setAttribute('aria-label', 'Dark mode is on, click to switch to light mode');
+            themeToggle.setAttribute('title', 'Dark mode: ON');
         } else {
             themeToggle.innerHTML = '<span class="btn-emoji">☀️</span><span class="btn-text"> Dark mode: OFF</span>';
             themeToggle.setAttribute('aria-label', 'Dark mode is off, click to switch to dark mode');
+            themeToggle.setAttribute('title', 'Dark mode: OFF');
         }
     }
 })();
@@ -261,11 +263,14 @@ function loadEventsFromURL() {
             // Visual feedback - change button text and color temporarily
             const originalHTML = copyLinkBtn.innerHTML;
             const originalBgColor = copyLinkBtn.style.backgroundColor;
+            const originalTitle = copyLinkBtn.getAttribute('title');
             copyLinkBtn.innerHTML = '<span class="btn-emoji">📋</span><span class="btn-text"> Copied!</span>';
             copyLinkBtn.style.backgroundColor = '#4caf50'; // Green color
+            copyLinkBtn.setAttribute('title', 'Copied!');
             setTimeout(() => {
                 copyLinkBtn.innerHTML = originalHTML;
                 copyLinkBtn.style.backgroundColor = originalBgColor;
+                copyLinkBtn.setAttribute('title', originalTitle);
             }, 2000);
         }).catch(err => {
             console.error('Failed to copy link:', err);
