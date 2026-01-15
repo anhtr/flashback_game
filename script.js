@@ -170,7 +170,7 @@ function loadEventsFromURL() {
             return true;
         } else {
             // Decoding failed - show error message and return false to load random events
-            showToast('⚠️ Failed to load events from URL. The link may be corrupted or incorrectly formatted. Loading randomized events instead.');
+            showToast('⚠️ Failed to load events from URL. The link may be corrupted or incorrectly formatted. Randomized events were loaded instead.');
             
             // Clear URL parameters since they're invalid
             clearURLParameters();
