@@ -28,31 +28,78 @@
     
     function updateToggleButton(theme) {
         if (theme === 'dark') {
-            themeToggle.innerHTML = '🌙 Dark mode: ON';
+            themeToggle.innerHTML = '<span class="btn-emoji">🌙</span><span class="btn-text"> Dark mode: ON</span>';
             themeToggle.setAttribute('aria-label', 'Dark mode is on, click to switch to light mode');
+            themeToggle.setAttribute('title', 'Dark mode: ON');
         } else {
-            themeToggle.innerHTML = '☀️ Dark mode: OFF';
+            themeToggle.innerHTML = '<span class="btn-emoji">☀️</span><span class="btn-text"> Dark mode: OFF</span>';
             themeToggle.setAttribute('aria-label', 'Dark mode is off, click to switch to dark mode');
+            themeToggle.setAttribute('title', 'Dark mode: OFF');
         }
     }
 })();
 
-// Shareable mode functionality
-let shareableModeEnabled = false;
-
-// Function to update shareable button text
-function updateShareableButtonText(enabled) {
-    const shareableToggle = document.getElementById('shareable-toggle');
-    if (!shareableToggle) return;
+// Edit mode toggle functionality
+(function() {
+    const editModeToggle = document.getElementById('edit-mode-toggle');
     
-    if (enabled) {
-        shareableToggle.innerHTML = '✅ Shareable: ON';
-        shareableToggle.setAttribute('aria-label', 'Shareable mode is on');
-    } else {
-        shareableToggle.innerHTML = '⭕ Shareable: OFF';
-        shareableToggle.setAttribute('aria-label', 'Shareable mode is off');
+    // Exit early if edit mode toggle element doesn't exist
+    if (!editModeToggle) {
+        console.warn('Edit mode toggle button not found');
+        return;
     }
-}
+    
+    // Edit mode is off by default, or use saved preference
+    const savedEditMode = localStorage.getItem('editMode');
+    const currentEditMode = savedEditMode ?? 'off';
+    
+    // Apply the edit mode
+    document.body.setAttribute('data-edit-mode', currentEditMode);
+    updateEditModeButton(currentEditMode);
+    updateRemoveButtonsVisibility(currentEditMode);
+    
+    // Toggle edit mode on button click
+    editModeToggle.addEventListener('click', () => {
+        const activeEditMode = document.body.getAttribute('data-edit-mode');
+        const newEditMode = activeEditMode === 'on' ? 'off' : 'on';
+        
+        document.body.setAttribute('data-edit-mode', newEditMode);
+        localStorage.setItem('editMode', newEditMode);
+        updateEditModeButton(newEditMode);
+        updateRemoveButtonsVisibility(newEditMode);
+    });
+    
+    function updateEditModeButton(mode) {
+        if (mode === 'on') {
+            editModeToggle.innerHTML = '<span class="btn-emoji">✏️</span><span class="btn-text"> Edit</span>';
+            editModeToggle.setAttribute('aria-label', 'Edit mode is on, click to turn off');
+        } else {
+            editModeToggle.innerHTML = '<span class="btn-emoji">✏️</span><span class="btn-text"> Edit</span>';
+            editModeToggle.setAttribute('aria-label', 'Edit mode is off, click to turn on');
+        }
+    }
+    
+    function updateRemoveButtonsVisibility(mode) {
+        const removeButtons = document.querySelectorAll('.remove-button');
+        removeButtons.forEach(button => {
+            if (mode === 'on') {
+                // Only show remove button if the event is still in the unsorted pile
+                // (not yet placed in the ordered timeline)
+                const event = button.closest('.event');
+                if (event && event.parentNode.id === 'unsorted-events') {
+                    button.style.display = '';
+                }
+            } else {
+                button.style.display = 'none';
+            }
+        });
+    }
+    
+    // Make the update function globally accessible via a namespace
+    // This is needed when new events are created dynamically
+    window.EditMode = window.EditMode || {};
+    window.EditMode.updateRemoveButtonsVisibility = updateRemoveButtonsVisibility;
+})();
 
 // Function to encode events to URL format using lz-string compression
 function encodeEventsToURL(events) {
@@ -65,6 +112,25 @@ function encodeEventsToURL(events) {
     const eventsJSON = JSON.stringify(events);
     // Use lz-string to compress and encode for URI
     return LZString.compressToEncodedURIComponent(eventsJSON);
+}
+
+// Function to show a transient toast message
+function showToast(message, duration = 5000) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.classList.add('toast');
+    toast.textContent = message;
+    
+    // Add to document
+    document.body.appendChild(toast);
+    
+    // Remove after animation completes
+    setTimeout(() => {
+        // Check if element still exists before removing
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, duration);
 }
 
 // Function to decode events from URL
@@ -89,10 +155,14 @@ function decodeEventsFromURL(encodedStr) {
     }
 }
 
-// Function to update URL with events
-function updateURLWithEvents() {
-    if (!shareableModeEnabled) return;
-    
+// Function to clear URL parameters and return to data-less state
+function clearURLParameters() {
+    const cleanUrl = new URL(window.location.origin + window.location.pathname);
+    window.history.replaceState({}, '', cleanUrl);
+}
+
+// Function to generate shareable link with current state
+function generateShareableLink() {
     // Collect events from both ordered timeline and unsorted events
     const orderedTimelineContainer = document.getElementById("ordered-timeline");
     const unsortedEventsContainer = document.getElementById("unsorted-events");
@@ -110,7 +180,7 @@ function updateURLWithEvents() {
     // Combine all events (ordered timeline + unsorted)
     const allEvents = [...orderedEvents, ...unsortedEvents];
     
-    const url = new URL(window.location);
+    const url = new URL(window.location.origin + window.location.pathname);
     
     // Handle empty event list with special indicator
     if (allEvents.length === 0) {
@@ -120,7 +190,7 @@ function updateURLWithEvents() {
         url.searchParams.set('events', encodedEvents);
     }
     
-    window.history.replaceState({}, '', url);
+    return url.toString();
 }
 
 // Function to load events from URL
@@ -139,19 +209,8 @@ function loadEventsFromURL() {
             totalPossibleScore = 0;
             updateScoreDisplay();
             
-            // Enable shareable mode automatically
-            shareableModeEnabled = true;
-            const shareableToggle = document.getElementById('shareable-toggle');
-            if (shareableToggle) {
-                shareableToggle.classList.add('active');
-            }
-            updateShareableButtonText(true);
-            
-            // Enable copy button
-            const copyLinkBtn = document.getElementById('copy-link-btn');
-            if (copyLinkBtn) {
-                copyLinkBtn.disabled = false;
-            }
+            // Clear URL parameters to return to data-less state
+            clearURLParameters();
             
             return true;
         }
@@ -169,79 +228,53 @@ function loadEventsFromURL() {
             totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
             updateScoreDisplay();
             
-            // Enable shareable mode automatically
-            shareableModeEnabled = true;
-            const shareableToggle = document.getElementById('shareable-toggle');
-            if (shareableToggle) {
-                shareableToggle.classList.add('active');
-            }
-            updateShareableButtonText(true);
-            
-            // Enable copy button
-            const copyLinkBtn = document.getElementById('copy-link-btn');
-            if (copyLinkBtn) {
-                copyLinkBtn.disabled = false;
-            }
+            // Clear URL parameters to return to data-less state
+            clearURLParameters();
             
             return true;
+        } else {
+            // Decoding failed - show error message and return false to load random events
+            showToast('⚠️ Failed to load events from URL. The link may be corrupted or incorrectly formatted. Randomized events were loaded instead.');
+            
+            // Clear URL parameters since they're invalid
+            clearURLParameters();
+            
+            return false;
         }
     }
     return false;
 }
 
-// Shareable toggle button functionality
+// Copy link button functionality
 (function() {
-    const shareableToggle = document.getElementById('shareable-toggle');
     const copyLinkBtn = document.getElementById('copy-link-btn');
-    
-    if (!shareableToggle) {
-        console.warn('Shareable toggle button not found');
-        return;
-    }
     
     if (!copyLinkBtn) {
         console.warn('Copy link button not found');
         return;
     }
     
-    // Initially disable copy button if shareable mode is off
-    copyLinkBtn.disabled = !shareableModeEnabled;
-    updateShareableButtonText(shareableModeEnabled);
-    
-    shareableToggle.addEventListener('click', () => {
-        shareableModeEnabled = !shareableModeEnabled;
-        
-        if (shareableModeEnabled) {
-            shareableToggle.classList.add('active');
-            copyLinkBtn.disabled = false;
-            updateShareableButtonText(true);
-            updateURLWithEvents();
-        } else {
-            shareableToggle.classList.remove('active');
-            copyLinkBtn.disabled = true;
-            updateShareableButtonText(false);
-            // Remove events parameter from URL
-            const url = new URL(window.location);
-            url.searchParams.delete('events');
-            window.history.replaceState({}, '', url);
-        }
-    });
-    
     // Copy link button functionality
     copyLinkBtn.addEventListener('click', () => {
-        if (!shareableModeEnabled) return;
+        // Generate the shareable link with current state
+        const shareableLink = generateShareableLink();
         
-        const url = window.location.href;
-        navigator.clipboard.writeText(url).then(() => {
-            // Visual feedback - change button text temporarily
-            const originalText = copyLinkBtn.textContent;
-            copyLinkBtn.textContent = 'Copied!';
+        navigator.clipboard.writeText(shareableLink).then(() => {
+            // Visual feedback - change button text and color temporarily
+            const originalHTML = copyLinkBtn.innerHTML;
+            const originalBgColor = copyLinkBtn.style.backgroundColor;
+            const originalTitle = copyLinkBtn.getAttribute('title');
+            copyLinkBtn.innerHTML = '<span class="btn-emoji">📋</span><span class="btn-text"> Copied!</span>';
+            copyLinkBtn.style.backgroundColor = '#4caf50'; // Green color
+            copyLinkBtn.setAttribute('title', 'Copied!');
             setTimeout(() => {
-                copyLinkBtn.textContent = originalText;
+                copyLinkBtn.innerHTML = originalHTML;
+                copyLinkBtn.style.backgroundColor = originalBgColor;
+                copyLinkBtn.setAttribute('title', originalTitle);
             }, 2000);
         }).catch(err => {
             console.error('Failed to copy link:', err);
-            alert('Failed to copy link. Please copy the URL from the address bar.');
+            alert('Failed to copy link. Please copy this shareable link manually:\n\n' + shareableLink);
         });
     });
 })();
@@ -302,9 +335,6 @@ function randomizeEvents() {
     // Update totalPossibleScore based on the unsorted events
     totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
-    
-    // Update URL if shareable mode is enabled
-    updateURLWithEvents();
 }
 
 // Add event listener to Randomize button
@@ -329,13 +359,56 @@ function shuffleUnsortedEvents() {
     // Clear any selected event and placement slots
     selectedEvent = null;
     clearPlacementSlots();
-    
-    // Update URL if shareable mode is enabled
-    updateURLWithEvents();
 }
 
 // Add event listener to Shuffle button
 document.getElementById("shuffle-btn").addEventListener("click", shuffleUnsortedEvents);
+
+// Function to reset - move all events from ordered timeline back to unsorted events and shuffle
+function resetEvents() {
+    const orderedTimelineContainer = document.getElementById("ordered-timeline");
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    const orderedEvents = Array.from(orderedTimelineContainer.children);
+    
+    // Move all events from ordered timeline to unsorted events
+    orderedEvents.forEach(eventElement => {
+        // Remove correct/incorrect classes
+        eventElement.classList.remove('correct', 'incorrect', 'placed');
+        
+        // Show remove button again
+        let removeButton = eventElement.querySelector(".remove-button");
+        if (removeButton) removeButton.style.display = "";
+        
+        // Hide the date again
+        let eventDate = eventElement.querySelector(".event-Date");
+        if (eventDate) {
+            eventDate.classList.add("hidden");
+        }
+        
+        // Reset initial answer tracking
+        delete eventElement.dataset.initialAnswer;
+        
+        // Move to unsorted events container
+        unsortedEventsContainer.appendChild(eventElement);
+    });
+    
+    // Reset player score
+    playerScore = 0;
+    
+    // Update total possible score
+    totalPossibleScore = unsortedEventsContainer.children.length;
+    updateScoreDisplay();
+    
+    // Clear any selected event and placement slots
+    selectedEvent = null;
+    clearPlacementSlots();
+    
+    // Shuffle the unsorted events
+    shuffleUnsortedEvents();
+}
+
+// Add event listener to Reset button
+document.getElementById("reset-btn").addEventListener("click", resetEvents);
 
 // Function to clear all events
 function clearAllEvents() {
@@ -357,9 +430,6 @@ function clearAllEvents() {
     // Update total possible score based on the remaining events in both lists
     totalPossibleScore = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
     updateScoreDisplay();
-    
-    // Update URL if shareable mode is enabled
-    updateURLWithEvents();
 }
 
 // Add event listener to Clear All button
@@ -398,6 +468,12 @@ function createEventElement(event, container) {
         e.stopPropagation(); // Prevent event selection when clicking remove
         removeEvent(eventElement, event.name);
     });
+    
+    // Hide remove button if edit mode is off
+    const editMode = document.body.getAttribute('data-edit-mode');
+    if (editMode !== 'on') {
+        removeButton.style.display = 'none';
+    }
 
     // Hidden date span (for later reveal)
     let eventDate = document.createElement("span");
@@ -440,9 +516,6 @@ function removeEvent(eventElement, eventName) {
     // Update totalPossibleScore based on the remaining events
     totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
     updateScoreDisplay();
-    
-    // Update URL if shareable mode is enabled
-    updateURLWithEvents();
 }
 
 // Add a new event from input
@@ -466,9 +539,6 @@ function addEvent() {
     // Clear input fields
     document.getElementById("event-name").value = "";
     document.getElementById("event-date").value = "";
-    
-    // Update URL if shareable mode is enabled
-    updateURLWithEvents();
 }
 
 // Attach click event listeners
