@@ -50,6 +50,22 @@ function encodeEventsToURL(events) {
     return LZString.compressToEncodedURIComponent(eventsJSON);
 }
 
+// Function to show a transient toast message
+function showToast(message, duration = 5000) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.classList.add('toast');
+    toast.textContent = message;
+    
+    // Add to document
+    document.body.appendChild(toast);
+    
+    // Remove after animation completes
+    setTimeout(() => {
+        toast.remove();
+    }, duration);
+}
+
 // Function to decode events from URL
 function decodeEventsFromURL(encodedStr) {
     try {
@@ -149,6 +165,14 @@ function loadEventsFromURL() {
             clearURLParameters();
             
             return true;
+        } else {
+            // Decoding failed - show error message and return false to load random events
+            showToast('⚠️ Failed to load events from URL. The link may be corrupted or incorrectly formatted. Loading randomized events instead.');
+            
+            // Clear URL parameters since they're invalid
+            clearURLParameters();
+            
+            return false;
         }
     }
     return false;
