@@ -545,9 +545,15 @@ function parseCSV(text) {
             errors.push(`Line ${index + 1}: Not enough columns (expected 2, got ${parts.length})`);
             return;
         }
+        
+        if (parts.length > 2) {
+            errorCount++;
+            errors.push(`Line ${index + 1}: Too many columns (expected 2, got ${parts.length}). Extra columns will be ignored.`);
+            // Continue processing with only first 2 columns
+        }
 
-        const eventName = parts[0].trim();
-        const eventDate = parts[1].trim();
+        const eventName = parts[0];
+        const eventDate = parts[1];
 
         // Validate event name
         if (eventName === "") {
