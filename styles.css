@@ -21,6 +21,8 @@
     --input-text: #000000;
     --input-border: #ccc;
     --placeholder-color: #666;
+    --toast-bg: #f44336;
+    --toast-text: #ffffff;
 }
 
 [data-theme="dark"] {
@@ -46,6 +48,8 @@
     --input-text: #e0e0e0;
     --input-border: #555;
     --placeholder-color: #888;
+    --toast-bg: #d32f2f;
+    --toast-text: #ffffff;
 }
 
 body {
@@ -229,8 +233,8 @@ input[type="text"]::placeholder {
     top: 80px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #f44336;
-    color: white;
+    background-color: var(--toast-bg);
+    color: var(--toast-text);
     padding: 16px 24px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);

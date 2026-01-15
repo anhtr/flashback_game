@@ -62,7 +62,10 @@ function showToast(message, duration = 5000) {
     
     // Remove after animation completes
     setTimeout(() => {
-        toast.remove();
+        // Check if element still exists before removing
+        if (toast.parentNode) {
+            toast.remove();
+        }
     }, duration);
 }
 
