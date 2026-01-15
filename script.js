@@ -69,10 +69,10 @@
     
     function updateEditModeButton(mode) {
         if (mode === 'on') {
-            editModeToggle.innerHTML = '✏️ Edit mode: ON';
+            editModeToggle.innerHTML = 'Edit';
             editModeToggle.setAttribute('aria-label', 'Edit mode is on, click to turn off');
         } else {
-            editModeToggle.innerHTML = '✏️ Edit mode: OFF';
+            editModeToggle.innerHTML = 'Edit';
             editModeToggle.setAttribute('aria-label', 'Edit mode is off, click to turn on');
         }
     }

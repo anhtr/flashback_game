@@ -70,13 +70,6 @@ body {
     margin-bottom: 10px;
 }
 
-/* Group right-side controls */
-.top-controls-right {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
 /* Edit mode toggle button */
 .edit-mode-toggle {
     padding: 10px 20px;
@@ -91,6 +84,13 @@ body {
 
 .edit-mode-toggle:hover {
     opacity: 0.8;
+}
+
+/* Highlight edit mode button when active */
+body[data-edit-mode="on"] .edit-mode-toggle {
+    background-color: #4a90e2;
+    color: #ffffff;
+    border-color: #4a90e2;
 }
 
 /* Hide edit-mode-only elements when edit mode is off */
