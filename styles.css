@@ -224,6 +224,11 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     .timeline {
         padding: 10px;
     }
+    
+    /* Hide button text on small screens, show only emojis */
+    button .btn-text {
+        display: none;
+    }
 }
 
 /* Button and input styling */
