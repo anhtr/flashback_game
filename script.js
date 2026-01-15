@@ -49,7 +49,7 @@
     
     // Edit mode is off by default, or use saved preference
     const savedEditMode = localStorage.getItem('editMode');
-    const currentEditMode = savedEditMode || 'off';
+    const currentEditMode = savedEditMode ?? 'off';
     
     // Apply the edit mode
     document.body.setAttribute('data-edit-mode', currentEditMode);
@@ -81,7 +81,8 @@
         const removeButtons = document.querySelectorAll('.remove-button');
         removeButtons.forEach(button => {
             if (mode === 'on') {
-                // Only show remove button if it's not already hidden due to being placed
+                // Only show remove button if the event is still in the unsorted pile
+                // (not yet placed in the ordered timeline)
                 const event = button.closest('.event');
                 if (event && event.parentNode.id === 'unsorted-events') {
                     button.style.display = '';
@@ -92,8 +93,10 @@
         });
     }
     
-    // Make the update function globally accessible for when new events are created
-    window.updateRemoveButtonsVisibility = updateRemoveButtonsVisibility;
+    // Make the update function globally accessible via a namespace
+    // This is needed when new events are created dynamically
+    window.EditMode = window.EditMode || {};
+    window.EditMode.updateRemoveButtonsVisibility = updateRemoveButtonsVisibility;
 })();
 
 // Function to encode events to URL format using lz-string compression
