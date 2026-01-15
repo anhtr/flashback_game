@@ -8,12 +8,8 @@
         return;
     }
     
-    // Set dark mode as default, or use saved preference
-    const savedTheme = localStorage.getItem('theme');
-    const currentTheme = savedTheme || 'dark';
-    
-    // Apply the theme
-    document.documentElement.setAttribute('data-theme', currentTheme);
+    // Get current theme (already set in HTML head)
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     updateToggleButton(currentTheme);
     
     // Toggle theme on button click
