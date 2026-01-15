@@ -10,7 +10,10 @@
 <body>
     <div class="top-controls">
         <button class="copy-link-btn" id="copy-link-btn" aria-label="Copy shareable link">📋 Shareable link</button>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Dark mode is on">🌙 Dark mode: ON</button>
+        <div class="top-controls-right">
+            <button class="edit-mode-toggle" id="edit-mode-toggle" aria-label="Edit mode is off">✏️ Edit mode: OFF</button>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Dark mode is on">🌙 Dark mode: ON</button>
+        </div>
     </div>
     <h1>Flashback Game</h1>
     <p><b>Click on an event in the unsorted pile, then click where you want to place it in the timeline.</b></p>
@@ -25,14 +28,16 @@
         <br>
         <button id="shuffle-btn">Shuffle</button>
         <button id="reset-btn">Reset</button>
-        <button id="randomize-btn">Randomize Events</button>
-        <button id="clear-all-btn">Clear All</button>
+        <button id="randomize-btn" class="edit-mode-only">Randomize Events</button>
+        <button id="clear-all-btn" class="edit-mode-only">Clear All</button>
     </div>
     <p id="result"></p>
-    <h2>Add a New Event</h2>
+    <div class="edit-mode-only">
+        <h2>Add a New Event</h2>
         <input type="text" id="event-name" placeholder="Event Name">
         <input type="date" id="event-date">
         <button onclick="addEvent()">Add Event</button>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

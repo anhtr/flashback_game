@@ -70,6 +70,34 @@ body {
     margin-bottom: 10px;
 }
 
+/* Group right-side controls */
+.top-controls-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Edit mode toggle button */
+.edit-mode-toggle {
+    padding: 10px 20px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--button-border);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.edit-mode-toggle:hover {
+    opacity: 0.8;
+}
+
+/* Hide edit-mode-only elements when edit mode is off */
+body:not([data-edit-mode="on"]) .edit-mode-only {
+    display: none !important;
+}
+
 /* Theme toggle button on the right */
 .theme-toggle {
     padding: 10px 20px;
