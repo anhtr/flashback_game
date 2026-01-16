@@ -284,8 +284,7 @@ button {
 
 /* Explicitly set font for emoji spans to ensure Noto Emoji is used */
 .btn-emoji {
-    font-family: 'Noto Emoji', 'Noto Color Emoji', sans-serif !important;
-    font-variation-settings: normal !important;
+    font-family: 'Noto Emoji', 'Noto Color Emoji', sans-serif;
 }
 
 button:hover {
