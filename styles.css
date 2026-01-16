@@ -41,6 +41,8 @@
     --slot-hover-bg: rgba(135, 206, 235, 0.5);
     --slot-border: #4169E1;
     --slot-text: #4169E1;
+    --slot-circle-size: 16px;
+    --slot-circle-hover-size: 20px;
     --button-bg: #f0f0f0;
     --button-text: #000000;
     --button-border: #ccc;
@@ -68,6 +70,8 @@
     --slot-hover-bg: rgba(30, 77, 123, 0.5);
     --slot-border: #4a90e2;
     --slot-text: #4a90e2;
+    --slot-circle-size: 16px;
+    --slot-circle-hover-size: 20px;
     --button-bg: #1a1a1a;
     --button-text: #e0e0e0;
     --button-border: #555;
@@ -225,8 +229,8 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 .placement-slot::after {
     content: '';
     position: absolute;
-    width: 16px;
-    height: 16px;
+    width: var(--slot-circle-size);
+    height: var(--slot-circle-size);
     border-radius: 50%;
     background-color: var(--slot-border);
     z-index: 2;
@@ -234,15 +238,15 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 }
 
 .placement-slot:hover::after {
-    width: 20px;
-    height: 20px;
+    width: var(--slot-circle-hover-size);
+    height: var(--slot-circle-hover-size);
     background-color: var(--slot-text);
 }
 
 /* Text styling for placement slots */
 .placement-slot-text {
     position: absolute;
-    left: calc(8px + 4px); /* Half circle width (16px/2) + margin */
+    left: calc(var(--slot-circle-size) / 2 + 4px); /* Half circle width + margin */
     top: calc(-0.5em - 2px); /* Half font height + small offset */
     font-size: 14px;
     color: var(--slot-text);
