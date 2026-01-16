@@ -585,8 +585,15 @@ function showPlacementSlots() {
 function createPlacementSlot(position) {
     const slot = document.createElement("div");
     slot.classList.add("placement-slot", "no-select");
-    slot.textContent = "Click to place here";
     slot.dataset.position = position;
+    
+    // Only add text to the first (topmost) placement slot
+    if (position === 0) {
+        const text = document.createElement("span");
+        text.classList.add("placement-slot-text");
+        text.textContent = "Click to place here";
+        slot.appendChild(text);
+    }
     
     slot.addEventListener('click', () => {
         placeEventAtPosition(position);
