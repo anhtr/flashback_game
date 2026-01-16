@@ -43,6 +43,7 @@
     --slot-text: #4169E1;
     --slot-circle-size: 16px;
     --slot-circle-hover-size: 20px;
+    --slot-clickable-padding: 10px;
     --slot-text-top-offset: -25px;
     --button-bg: #f0f0f0;
     --button-text: #000000;
@@ -73,6 +74,7 @@
     --slot-text: #4a90e2;
     --slot-circle-size: 16px;
     --slot-circle-hover-size: 20px;
+    --slot-clickable-padding: 10px;
     --slot-text-top-offset: -25px;
     --button-bg: #1a1a1a;
     --button-text: #e0e0e0;
@@ -210,7 +212,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     height: 0;
     cursor: pointer;
     margin: 0;
-    padding: 10px 0; /* Add padding to increase clickable area */
+    padding: var(--slot-clickable-padding) 0; /* Add padding to increase clickable area */
     display: flex;
     align-items: center;
     justify-content: center;
