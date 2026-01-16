@@ -211,7 +211,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
        Note: !important is required to override inline styles set by JavaScript */
     .event .event-content > div {
         margin-left: 0 !important;
-        margin-top: 10px;
+        margin-top: 0;
         width: 100%;
         justify-content: center;
     }
