@@ -371,9 +371,16 @@ function resetEvents() {
         // Remove correct/incorrect classes
         eventElement.classList.remove('correct', 'incorrect', 'placed');
         
-        // Show remove button again
+        // Handle remove button visibility based on edit mode
         let removeButton = eventElement.querySelector(".remove-button");
-        if (removeButton) removeButton.style.display = "";
+        if (removeButton) {
+            const editMode = document.body.getAttribute('data-edit-mode');
+            if (editMode === 'on') {
+                removeButton.style.display = '';
+            } else {
+                removeButton.style.display = 'none';
+            }
+        }
         
         // Hide the date again
         let eventDate = eventElement.querySelector(".event-Date");

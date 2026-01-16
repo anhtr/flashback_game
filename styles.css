@@ -212,6 +212,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     height: 0;
     cursor: pointer;
     margin: 0;
+    padding: 10px 0; /* Add padding to increase clickable area */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -227,6 +228,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     height: 2px;
     background-color: var(--slot-border);
     z-index: 1;
+    pointer-events: none;
 }
 
 /* Filled circle at the center */
@@ -239,6 +241,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     background-color: var(--slot-border);
     z-index: 2;
     transition: all 0.3s ease;
+    pointer-events: none;
 }
 
 .placement-slot:hover::after {
@@ -247,16 +250,22 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     background-color: var(--slot-text);
 }
 
-/* Text styling for placement slots */
+/* Text styling for placement slots - pill-shaped box above the circle */
 .placement-slot-text {
     position: absolute;
-    left: calc(var(--slot-circle-size) / 2 + var(--slot-text-margin)); /* Half circle width + margin */
-    top: calc(-0.5em - var(--slot-text-vertical-offset)); /* Half font height + small offset */
+    left: 50%;
+    top: -25px; /* Position above the circle */
+    transform: translateX(-50%); /* Center horizontally */
     font-size: 14px;
     color: var(--slot-text);
     white-space: nowrap;
     z-index: 3;
     pointer-events: none;
+    /* Pill-shaped background box */
+    background-color: var(--bg-color);
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--slot-border);
 }
 .hidden {
     display: none;
