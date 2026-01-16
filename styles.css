@@ -1,3 +1,40 @@
+/* Noto Serif font-face declarations */
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('fonts/NotoSerif-Regular.woff2') format('woff2'),
+         url('fonts/NotoSerif-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('fonts/NotoSerif-Bold.woff2') format('woff2'),
+         url('fonts/NotoSerif-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('fonts/NotoSerif-Italic.woff2') format('woff2'),
+         url('fonts/NotoSerif-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('fonts/NotoSerif-BoldItalic.woff2') format('woff2'),
+         url('fonts/NotoSerif-BoldItalic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+}
+
 :root {
     /* Light mode colors */
     --bg-color: #ffffff;
@@ -53,7 +90,7 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;
     text-align: center;
     background-color: var(--bg-color);
     color: var(--text-color);
