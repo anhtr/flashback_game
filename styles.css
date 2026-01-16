@@ -43,8 +43,6 @@
     --slot-text: #4169E1;
     --slot-circle-size: 16px;
     --slot-circle-hover-size: 20px;
-    --slot-clickable-padding: 10px;
-    --slot-text-top-offset: -25px;
     --button-bg: #f0f0f0;
     --button-text: #000000;
     --button-border: #ccc;
@@ -74,8 +72,6 @@
     --slot-text: #4a90e2;
     --slot-circle-size: 16px;
     --slot-circle-hover-size: 20px;
-    --slot-clickable-padding: 10px;
-    --slot-text-top-offset: -25px;
     --button-bg: #1a1a1a;
     --button-text: #e0e0e0;
     --button-border: #555;
@@ -212,7 +208,6 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     height: 0;
     cursor: pointer;
     margin: 0;
-    padding: var(--slot-clickable-padding) 0; /* Add padding to increase clickable area */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -220,31 +215,45 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     transition: all 0.3s ease;
 }
 
-/* Horizontal line passing through the center */
+/* Clickable area overlay - positioned absolutely to not affect layout */
 .placement-slot::before {
     content: '';
     position: absolute;
     width: 100%;
-    height: 2px;
-    background-color: var(--slot-border);
+    height: 20px; /* Clickable area */
+    top: -10px; /* Center the clickable area */
+    cursor: pointer;
     z-index: 1;
+}
+
+/* Horizontal line with gradient - transparent in middle, opaque at ends */
+.placement-slot-line {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, 
+        var(--slot-border) 0%, 
+        var(--slot-border) 25%, 
+        transparent 50%, 
+        var(--slot-border) 75%, 
+        var(--slot-border) 100%);
+    z-index: 2;
     pointer-events: none;
 }
 
 /* Filled circle at the center */
-.placement-slot::after {
-    content: '';
+.placement-slot-circle {
     position: absolute;
     width: var(--slot-circle-size);
     height: var(--slot-circle-size);
     border-radius: 50%;
     background-color: var(--slot-border);
-    z-index: 2;
+    z-index: 3;
     transition: all 0.3s ease;
     pointer-events: none;
 }
 
-.placement-slot:hover::after {
+.placement-slot:hover .placement-slot-circle {
     width: var(--slot-circle-hover-size);
     height: var(--slot-circle-hover-size);
     background-color: var(--slot-text);
@@ -254,12 +263,12 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 .placement-slot-text {
     position: absolute;
     left: 50%;
-    top: var(--slot-text-top-offset); /* Position above the circle */
+    top: -35px; /* Positioned higher to avoid overlap with circle */
     transform: translateX(-50%); /* Center horizontally */
     font-size: 14px;
     color: var(--slot-text);
     white-space: nowrap;
-    z-index: 3;
+    z-index: 4;
     pointer-events: none;
     /* Pill-shaped background box */
     background-color: var(--bg-color);

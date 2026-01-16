@@ -594,8 +594,21 @@ function createPlacementSlot(position) {
     slot.classList.add("placement-slot", "no-select");
     slot.dataset.position = position;
     
-    // Only add text to the first (topmost) placement slot
-    if (position === 0) {
+    // Create the line element with gradient
+    const line = document.createElement("div");
+    line.classList.add("placement-slot-line");
+    slot.appendChild(line);
+    
+    // Create the circle element
+    const circle = document.createElement("div");
+    circle.classList.add("placement-slot-circle");
+    slot.appendChild(circle);
+    
+    // Only add text to the first slot if timeline is empty (no events placed yet)
+    const orderedTimeline = document.getElementById("ordered-timeline");
+    const existingEvents = Array.from(orderedTimeline.children).filter(child => !child.classList.contains('placement-slot'));
+    
+    if (position === 0 && existingEvents.length === 0) {
         const text = document.createElement("span");
         text.classList.add("placement-slot-text");
         text.textContent = "Click to place here";
