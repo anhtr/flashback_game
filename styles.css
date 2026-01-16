@@ -1,3 +1,30 @@
+/* Noto Serif font-face declarations */
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('fonts/NotoSerif-VariableFont_wdth,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-stretch: 62.5% 100%;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('fonts/NotoSerif-Italic-VariableFont_wdth,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-stretch: 62.5% 100%;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Emoji';
+    src: url('fonts/NotoEmoji-VariableFont_wght.ttf') format('truetype');
+    font-weight: 300 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     /* Light mode colors */
     --bg-color: #ffffff;
@@ -53,7 +80,9 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
+    /* Font stack prioritizes Noto Serif for text, then Noto Emoji (black & white, self-hosted) 
+       for emoji, with fallback to Noto Color Emoji (system) for missing glyphs */
+    font-family: 'Noto Serif', 'Noto Emoji', 'Noto Color Emoji', Georgia, 'Times New Roman', serif;
     text-align: center;
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -156,6 +185,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     cursor: pointer;
     border: 1px solid var(--event-border);
     transition: all 0.3s ease;
+    text-align: left;
 }
 .event:hover {
     background: var(--event-hover-bg);
@@ -190,6 +220,43 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     display: none;
 }
 
+/* Variable font width for small screens - progressive condensing */
+@media screen and (max-width: 768px) {
+    body {
+        font-variation-settings: "wdth" 100;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    body {
+        font-variation-settings: "wdth" 95;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    body {
+        font-variation-settings: "wdth" 90;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    body {
+        font-variation-settings: "wdth" 85;
+    }
+}
+
+@media screen and (max-width: 400px) {
+    body {
+        font-variation-settings: "wdth" 80;
+    }
+}
+
+@media screen and (max-width: 320px) {
+    body {
+        font-variation-settings: "wdth" 75;
+    }
+}
+
 /* Media query for portrait mode or small screens */
 @media screen and (max-width: 768px), (orientation: portrait) and (max-width: 1024px) {
     /* Make container full width to remove side padding */
@@ -210,7 +277,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
        Note: !important is required to override inline styles set by JavaScript */
     .event .event-content > div {
         margin-left: 0 !important;
-        margin-top: 10px;
+        margin-top: 0;
         width: 100%;
         justify-content: center;
     }
@@ -240,6 +307,13 @@ button {
     cursor: pointer;
     border-radius: 5px;
     transition: all 0.3s ease;
+    /* Ensure buttons inherit the font stack with Noto Serif and Noto Emoji */
+    font-family: inherit;
+}
+
+/* Explicitly set font for emoji spans to ensure Noto Emoji is used */
+.btn-emoji {
+    font-family: 'Noto Emoji', 'Noto Color Emoji', sans-serif;
 }
 
 button:hover {

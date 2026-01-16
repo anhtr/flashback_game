@@ -8,12 +8,8 @@
         return;
     }
     
-    // Set dark mode as default, or use saved preference
-    const savedTheme = localStorage.getItem('theme');
-    const currentTheme = savedTheme || 'dark';
-    
-    // Apply the theme
-    document.documentElement.setAttribute('data-theme', currentTheme);
+    // Get current theme (already set in HTML head)
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     updateToggleButton(currentTheme);
     
     // Toggle theme on button click
@@ -32,7 +28,7 @@
             themeToggle.setAttribute('aria-label', 'Dark mode is on, click to switch to light mode');
             themeToggle.setAttribute('title', 'Dark mode: ON');
         } else {
-            themeToggle.innerHTML = '<span class="btn-emoji">☀️</span><span class="btn-text"> Dark mode: OFF</span>';
+            themeToggle.innerHTML = '<span class="btn-emoji">☀</span><span class="btn-text"> Dark mode: OFF</span>';
             themeToggle.setAttribute('aria-label', 'Dark mode is off, click to switch to dark mode');
             themeToggle.setAttribute('title', 'Dark mode: OFF');
         }
@@ -71,10 +67,10 @@
     
     function updateEditModeButton(mode) {
         if (mode === 'on') {
-            editModeToggle.innerHTML = '<span class="btn-emoji">✏️</span><span class="btn-text"> Edit</span>';
+            editModeToggle.innerHTML = '<span class="btn-emoji">✏</span><span class="btn-text"> Edit</span>';
             editModeToggle.setAttribute('aria-label', 'Edit mode is on, click to turn off');
         } else {
-            editModeToggle.innerHTML = '<span class="btn-emoji">✏️</span><span class="btn-text"> Edit</span>';
+            editModeToggle.innerHTML = '<span class="btn-emoji">✏</span><span class="btn-text"> Edit</span>';
             editModeToggle.setAttribute('aria-label', 'Edit mode is off, click to turn on');
         }
     }
@@ -234,7 +230,7 @@ function loadEventsFromURL() {
             return true;
         } else {
             // Decoding failed - show error message and return false to load random events
-            showToast('⚠️ Failed to load events from URL. The link may be corrupted or incorrectly formatted. Randomized events were loaded instead.');
+            showToast('⚠ Failed to load events from URL. The link may be corrupted or incorrectly formatted. Randomized events were loaded instead.');
             
             // Clear URL parameters since they're invalid
             clearURLParameters();
