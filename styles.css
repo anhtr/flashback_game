@@ -35,6 +35,14 @@
     font-display: swap;
 }
 
+/* Noto Color Emoji font-face declaration */
+@font-face {
+    font-family: 'Noto Color Emoji';
+    src: url('fonts/NotoColorEmoji.woff2') format('woff2'),
+         url('fonts/NotoColorEmoji.ttf') format('truetype');
+    font-display: swap;
+}
+
 :root {
     /* Light mode colors */
     --bg-color: #ffffff;
@@ -90,12 +98,14 @@
 }
 
 body {
-    font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;
+    font-family: 'Noto Serif', 'Noto Color Emoji', Georgia, 'Times New Roman', serif;
     text-align: center;
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s ease, color 0.3s ease;
     padding-top: 20px;
+    /* Responsive font stretch: simulates variable font width behavior on small screens */
+    font-stretch: normal;
 }
 
 /* Top controls container */
@@ -266,6 +276,52 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     /* Hide button text on small screens, show only emojis */
     button .btn-text {
         display: none;
+    }
+    
+    /* Begin responsive font-stretch for small screens */
+    body {
+        font-stretch: 95%;
+    }
+}
+
+/* Responsive font width: progressively condense font as screen narrows (Issue #34 workaround) */
+/* Note: This uses font-stretch as a workaround since variable fonts are not available */
+/* Ideally this would use font-variation-settings: 'wdth' <value> with Noto Serif VF */
+
+@media screen and (max-width: 640px) {
+    body {
+        font-stretch: 90%;
+    }
+}
+
+@media screen and (max-width: 560px) {
+    body {
+        font-stretch: 87%;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    body {
+        font-stretch: 83%;
+    }
+}
+
+@media screen and (max-width: 400px) {
+    body {
+        font-stretch: 80%;
+    }
+}
+
+@media screen and (max-width: 360px) {
+    body {
+        font-stretch: 77%;
+    }
+}
+
+/* At 320px and below, set to most condensed (75%) and do not compress further */
+@media screen and (max-width: 320px) {
+    body {
+        font-stretch: 75%;
     }
 }
 
