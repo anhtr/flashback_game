@@ -80,6 +80,8 @@
 }
 
 body {
+    /* Font stack prioritizes Noto Serif for text, then Noto Emoji (black & white, self-hosted) 
+       for emoji, with fallback to Noto Color Emoji (system) for missing glyphs */
     font-family: 'Noto Serif', 'Noto Emoji', 'Noto Color Emoji', Georgia, 'Times New Roman', serif;
     text-align: center;
     background-color: var(--bg-color);
@@ -222,8 +224,9 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 @media screen and (max-width: 768px), (orientation: portrait) and (max-width: 1024px) {
     /* Variable font width adjustment for small screens */
     body {
-        /* At 768px: width = 100, At 320px: width = 75 */
-        /* Linear interpolation: width = 100 - (100-75) * (768-vw) / (768-320) */
+        /* Smoothly reduce font width from 100 (at 768px) to 75 (at 320px and below)
+           Formula: clamp(75, 100 - 25 * (768 - viewport_width) / (768 - 320), 100)
+           where (768 - 320) = 448 is the viewport width range */
         font-variation-settings: "wdth" clamp(75, calc(100 - 25 * (768 - 100vw) / 448), 100);
     }
     
