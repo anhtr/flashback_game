@@ -43,8 +43,7 @@
     --slot-text: #4169E1;
     --slot-circle-size: 16px;
     --slot-circle-hover-size: 20px;
-    --slot-text-margin: 4px;
-    --slot-text-vertical-offset: 2px;
+    --slot-text-top-offset: -25px;
     --button-bg: #f0f0f0;
     --button-text: #000000;
     --button-border: #ccc;
@@ -74,8 +73,7 @@
     --slot-text: #4a90e2;
     --slot-circle-size: 16px;
     --slot-circle-hover-size: 20px;
-    --slot-text-margin: 4px;
-    --slot-text-vertical-offset: 2px;
+    --slot-text-top-offset: -25px;
     --button-bg: #1a1a1a;
     --button-text: #e0e0e0;
     --button-border: #555;
@@ -254,7 +252,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 .placement-slot-text {
     position: absolute;
     left: 50%;
-    top: -25px; /* Position above the circle */
+    top: var(--slot-text-top-offset); /* Position above the circle */
     transform: translateX(-50%); /* Center horizontally */
     font-size: 14px;
     color: var(--slot-text);
