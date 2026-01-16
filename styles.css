@@ -162,6 +162,19 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 .copy-link-btn:hover {
     opacity: 0.8;
 }
+
+/* Score display with pill-shaped box */
+#result {
+    font-weight: bold;
+    font-size: 16px;
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    /* Inverted colors: text color = background, box color = opposite */
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
+
 .no-select {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -179,19 +192,19 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     justify-content: center; /* Request 1: Center content when empty */
     gap: 10px;
     padding: 20px;
-    border: none; /* Request 4: Remove full border */
+    border: none;
     min-height: 100px;
     background-color: var(--bg-color);
     transition: background-color 0.3s ease, border-color 0.3s ease;
     position: relative;
     
-    /* Request 4: Corner borders only */
+    /* Corner borders */
     --corner-size: 20px;
     --corner-thickness: 2px;
     --corner-color: var(--border-color);
 }
 
-/* Request 4: Corner borders for timeline */
+/* Top-left and top-right corner borders using pseudo-elements */
 .timeline::before,
 .timeline::after {
     content: '';
@@ -214,23 +227,36 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     border-width: var(--corner-thickness) var(--corner-thickness) 0 0;
 }
 
-/* Bottom corners for timeline */
+/* Bottom corners using box-shadow approach */
 .timeline {
+    box-shadow:
+        /* Bottom-left corner - vertical line */
+        calc(var(--corner-thickness) / 2) calc(100% - var(--corner-size)) 0 0 var(--corner-color) inset,
+        /* Bottom-left corner - horizontal line */
+        0 calc(100% - var(--corner-thickness) / 2) 0 0 var(--corner-color) inset,
+        /* Bottom-right corner - vertical line */
+        calc(-1 * var(--corner-thickness) / 2) calc(100% - var(--corner-size)) 0 0 var(--corner-color) inset,
+        /* Bottom-right corner - horizontal line */
+        0 calc(100% - var(--corner-thickness) / 2) 0 0 var(--corner-color) inset;
     background-image:
-        linear-gradient(to right, var(--corner-color) var(--corner-thickness), transparent var(--corner-thickness)),
-        linear-gradient(to right, transparent calc(100% - var(--corner-thickness)), var(--corner-color) calc(100% - var(--corner-thickness))),
-        linear-gradient(to bottom, transparent calc(100% - var(--corner-thickness)), var(--corner-color) calc(100% - var(--corner-thickness))),
-        linear-gradient(to bottom, transparent calc(100% - var(--corner-thickness)), var(--corner-color) calc(100% - var(--corner-thickness)));
+        /* Bottom-left vertical */
+        linear-gradient(to bottom, var(--corner-color) 0, var(--corner-color) 100%),
+        /* Bottom-left horizontal */
+        linear-gradient(to right, var(--corner-color) 0, var(--corner-color) 100%),
+        /* Bottom-right vertical */
+        linear-gradient(to bottom, var(--corner-color) 0, var(--corner-color) 100%),
+        /* Bottom-right horizontal */
+        linear-gradient(to right, var(--corner-color) 0, var(--corner-color) 100%);
     background-size:
-        var(--corner-size) var(--corner-thickness),
+        var(--corner-thickness) var(--corner-size),
         var(--corner-size) var(--corner-thickness),
         var(--corner-thickness) var(--corner-size),
-        var(--corner-thickness) var(--corner-size);
+        var(--corner-size) var(--corner-thickness);
     background-position:
         0 100%,
+        0 100%,
         100% 100%,
-        0 calc(100% - var(--corner-size)),
-        100% calc(100% - var(--corner-size));
+        calc(100% - var(--corner-size)) 100%;
     background-repeat: no-repeat;
 }
 .event {
