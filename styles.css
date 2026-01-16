@@ -220,16 +220,45 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     display: none;
 }
 
+/* Variable font width for small screens - progressive condensing */
+@media screen and (max-width: 768px) {
+    body {
+        font-variation-settings: "wdth" 100;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    body {
+        font-variation-settings: "wdth" 95;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    body {
+        font-variation-settings: "wdth" 90;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    body {
+        font-variation-settings: "wdth" 85;
+    }
+}
+
+@media screen and (max-width: 400px) {
+    body {
+        font-variation-settings: "wdth" 80;
+    }
+}
+
+@media screen and (max-width: 320px) {
+    body {
+        font-variation-settings: "wdth" 75;
+    }
+}
+
 /* Media query for portrait mode or small screens */
 @media screen and (max-width: 768px), (orientation: portrait) and (max-width: 1024px) {
-    /* Variable font width adjustment for small screens */
-    body {
-        /* Smoothly reduce font width from 100 (at 768px) to 75 (at 320px and below)
-           Formula: clamp(75, 100 - 25 * (768 - viewport_width) / (768 - 320), 100)
-           where (768 - 320) = 448 is the viewport width range */
-        font-variation-settings: "wdth" clamp(75, calc(100 - 25 * (768 - 100vw) / 448), 100);
-    }
-    
     /* Make container full width to remove side padding */
     .container {
         width: 100%;
