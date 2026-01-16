@@ -1,3 +1,30 @@
+/* Noto Serif font-face declarations */
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('fonts/NotoSerif-VariableFont_wdth,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-stretch: 62.5% 100%;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('fonts/NotoSerif-Italic-VariableFont_wdth,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-stretch: 62.5% 100%;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Emoji';
+    src: url('fonts/NotoEmoji-VariableFont_wght.ttf') format('truetype');
+    font-weight: 300 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     /* Light mode colors */
     --bg-color: #ffffff;
@@ -53,7 +80,7 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Noto Serif', 'Noto Emoji', 'Noto Color Emoji', Georgia, 'Times New Roman', serif;
     text-align: center;
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -193,6 +220,13 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 
 /* Media query for portrait mode or small screens */
 @media screen and (max-width: 768px), (orientation: portrait) and (max-width: 1024px) {
+    /* Variable font width adjustment for small screens */
+    body {
+        /* At 768px: width = 100, At 320px: width = 75 */
+        /* Linear interpolation: width = 100 - (100-75) * (768-vw) / (768-320) */
+        font-variation-settings: "wdth" clamp(75, calc(100 - 25 * (768 - 100vw) / 448), 100);
+    }
+    
     /* Make container full width to remove side padding */
     .container {
         width: 100%;
