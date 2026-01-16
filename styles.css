@@ -278,6 +278,13 @@ button {
     cursor: pointer;
     border-radius: 5px;
     transition: all 0.3s ease;
+    /* Ensure buttons inherit the font stack with Noto Serif and Noto Emoji */
+    font-family: inherit;
+}
+
+/* Explicitly set font for emoji spans to ensure Noto Emoji is used */
+.btn-emoji {
+    font-family: 'Noto Emoji', 'Noto Color Emoji', sans-serif;
 }
 
 button:hover {
