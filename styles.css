@@ -156,6 +156,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     cursor: pointer;
     border: 1px solid var(--event-border);
     transition: all 0.3s ease;
+    text-align: left;
 }
 .event:hover {
     background: var(--event-hover-bg);
