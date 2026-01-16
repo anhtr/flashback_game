@@ -43,6 +43,8 @@
     --slot-text: #4169E1;
     --slot-circle-size: 16px;
     --slot-circle-hover-size: 20px;
+    --slot-text-margin: 4px;
+    --slot-text-vertical-offset: 2px;
     --button-bg: #f0f0f0;
     --button-text: #000000;
     --button-border: #ccc;
@@ -72,6 +74,8 @@
     --slot-text: #4a90e2;
     --slot-circle-size: 16px;
     --slot-circle-hover-size: 20px;
+    --slot-text-margin: 4px;
+    --slot-text-vertical-offset: 2px;
     --button-bg: #1a1a1a;
     --button-text: #e0e0e0;
     --button-border: #555;
@@ -246,8 +250,8 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 /* Text styling for placement slots */
 .placement-slot-text {
     position: absolute;
-    left: calc(var(--slot-circle-size) / 2 + 4px); /* Half circle width + margin */
-    top: calc(-0.5em - 2px); /* Half font height + small offset */
+    left: calc(var(--slot-circle-size) / 2 + var(--slot-text-margin)); /* Half circle width + margin */
+    top: calc(-0.5em - var(--slot-text-vertical-offset)); /* Half font height + small offset */
     font-size: 14px;
     color: var(--slot-text);
     white-space: nowrap;
