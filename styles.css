@@ -242,8 +242,8 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 /* Text styling for placement slots */
 .placement-slot-text {
     position: absolute;
-    left: 20px;
-    top: -10px;
+    left: calc(8px + 4px); /* Half circle width (16px/2) + margin */
+    top: calc(-0.5em - 2px); /* Half font height + small offset */
     font-size: 14px;
     color: var(--slot-text);
     white-space: nowrap;
