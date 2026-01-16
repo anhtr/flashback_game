@@ -176,18 +176,69 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 .timeline {
     display: flex;
     flex-direction: column;
+    justify-content: center; /* Request 1: Center content when empty */
     gap: 10px;
     padding: 20px;
-    border: 1px solid var(--border-color);
+    border: none; /* Request 4: Remove full border */
     min-height: 100px;
     background-color: var(--bg-color);
     transition: background-color 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    
+    /* Request 4: Corner borders only */
+    --corner-size: 20px;
+    --corner-thickness: 2px;
+    --corner-color: var(--border-color);
+}
+
+/* Request 4: Corner borders for timeline */
+.timeline::before,
+.timeline::after {
+    content: '';
+    position: absolute;
+    width: var(--corner-size);
+    height: var(--corner-size);
+    border-color: var(--corner-color);
+    border-style: solid;
+}
+
+.timeline::before {
+    top: 0;
+    left: 0;
+    border-width: var(--corner-thickness) 0 0 var(--corner-thickness);
+}
+
+.timeline::after {
+    top: 0;
+    right: 0;
+    border-width: var(--corner-thickness) var(--corner-thickness) 0 0;
+}
+
+/* Bottom corners for timeline */
+.timeline {
+    background-image:
+        linear-gradient(to right, var(--corner-color) var(--corner-thickness), transparent var(--corner-thickness)),
+        linear-gradient(to right, transparent calc(100% - var(--corner-thickness)), var(--corner-color) calc(100% - var(--corner-thickness))),
+        linear-gradient(to bottom, transparent calc(100% - var(--corner-thickness)), var(--corner-color) calc(100% - var(--corner-thickness))),
+        linear-gradient(to bottom, transparent calc(100% - var(--corner-thickness)), var(--corner-color) calc(100% - var(--corner-thickness)));
+    background-size:
+        var(--corner-size) var(--corner-thickness),
+        var(--corner-size) var(--corner-thickness),
+        var(--corner-thickness) var(--corner-size),
+        var(--corner-thickness) var(--corner-size);
+    background-position:
+        0 100%,
+        100% 100%,
+        0 calc(100% - var(--corner-size)),
+        100% calc(100% - var(--corner-size));
+    background-repeat: no-repeat;
 }
 .event {
     padding: 10px;
     background: var(--event-bg);
     cursor: pointer;
-    border: 1px solid var(--event-border);
+    border: none; /* Request 3: Remove outline/border */
+    border-radius: 4px; /* Request 5: Slightly rounded corners */
     transition: all 0.3s ease;
     text-align: left;
 }
@@ -196,7 +247,8 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 }
 .event.selected {
     background: var(--event-selected-bg);
-    border: 2px solid var(--event-selected-border);
+    border: none; /* Request 3: Remove outline/border */
+    box-shadow: 0 0 0 2px var(--event-selected-border); /* Use box-shadow instead of border */
 }
 .correct {
     background: var(--correct-bg) !important;
@@ -238,6 +290,12 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
         transparent 100%);
     z-index: 2;
     pointer-events: none;
+    transition: height 0.3s ease; /* Request 2: Add transition for line weight */
+}
+
+/* Request 2: Increase line weight on hover */
+.placement-slot:hover .placement-slot-line {
+    height: 3px;
 }
 
 /* Filled circle at the center */
