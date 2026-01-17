@@ -547,6 +547,9 @@ function addEvent() {
 // Attach click event listeners
 function addClickListeners(event) {
     event.addEventListener('click', (e) => {
+        // Stop propagation to prevent document click handler from deselecting
+        e.stopPropagation();
+        
         // Only allow selection if event is in unsorted pile
         if (event.parentNode.id === "unsorted-events") {
             selectEvent(event);
@@ -556,6 +559,12 @@ function addClickListeners(event) {
 
 // Function to select an event and show placement slots
 function selectEvent(event) {
+    // If clicking the same event that's already selected, deselect it
+    if (selectedEvent === event) {
+        deselectEvent();
+        return;
+    }
+    
     // Clear previous selection
     if (selectedEvent) {
         selectedEvent.classList.remove('selected');
@@ -570,6 +579,15 @@ function selectEvent(event) {
     
     // Show placement slots in the ordered timeline
     showPlacementSlots();
+}
+
+// Function to deselect the current event
+function deselectEvent() {
+    if (selectedEvent) {
+        selectedEvent.classList.remove('selected');
+        selectedEvent = null;
+    }
+    clearPlacementSlots();
 }
 
 // Function to show placement slots in the ordered timeline
@@ -615,7 +633,9 @@ function createPlacementSlot(position) {
         slot.appendChild(text);
     }
     
-    slot.addEventListener('click', () => {
+    slot.addEventListener('click', (e) => {
+        // Stop propagation to prevent document click handler from deselecting
+        e.stopPropagation();
         placeEventAtPosition(position);
     });
     
@@ -723,3 +743,38 @@ function updateScoreDisplay() {
 
 // Load events when the page loads
 document.addEventListener("DOMContentLoaded", loadEvents);
+
+// Add click handlers to timeline containers to stop propagation
+document.addEventListener("DOMContentLoaded", () => {
+    const orderedTimeline = document.getElementById("ordered-timeline");
+    const unsortedEvents = document.getElementById("unsorted-events");
+    
+    // Stop propagation on timeline clicks to prevent document handler from deselecting
+    if (orderedTimeline) {
+        orderedTimeline.addEventListener('click', (e) => {
+            // Only stop propagation if clicking the container itself or placement slots
+            // Event clicks already stop propagation in addClickListeners
+            if (e.target === orderedTimeline || e.target.closest('.placement-slot')) {
+                e.stopPropagation();
+            }
+        });
+    }
+    
+    if (unsortedEvents) {
+        unsortedEvents.addEventListener('click', (e) => {
+            // Only stop propagation if clicking the container itself
+            // Event clicks already stop propagation in addClickListeners
+            if (e.target === unsortedEvents) {
+                e.stopPropagation();
+            }
+        });
+    }
+});
+
+// Add document-level click handler to deselect when clicking outside timeline areas
+document.addEventListener("click", (e) => {
+    // Deselect if there's a selected event
+    if (selectedEvent) {
+        deselectEvent();
+    }
+});
