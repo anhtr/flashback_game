@@ -194,6 +194,97 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     color: var(--bg-color);
 }
 
+/* Show date toggle button */
+.show-date-toggle {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.3s ease;
+    font-family: inherit;
+}
+
+/* Place the show-date toggle at the right when it's inside the top controls (flex container) */
+.top-controls .show-date-toggle {
+    margin-left: auto;
+}
+
+/* When the toggle is placed inside the main `.container`, right-align it there as well */
+.container .show-date-toggle {
+    display: flex;
+    justify-content: flex-end;
+    margin-left: auto;
+    margin-bottom: 12px;
+}
+
+.show-date-toggle:hover {
+    opacity: 0.7;
+}
+
+/* Monochrome CSS checkbox: hide native visuals but keep input accessible */
+.show-date-toggle input[type="checkbox"] {
+    position: absolute;
+    left: auto;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    opacity: 0;
+    margin: 0;
+    z-index: 2;
+}
+
+.show-date-toggle label {
+    cursor: pointer;
+    margin: 0;
+    color: var(--text-color);
+    font-style: italic;
+    position: relative;
+    padding-right: 26px; /* space for checkbox on the right */
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Draw the monochrome box */
+.show-date-toggle label::before {
+    content: "";
+    position: absolute;
+    left: auto;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--placeholder-color);
+    border-radius: 3px;
+    background: transparent;
+    box-sizing: border-box;
+}
+
+/* Draw the check mark using a rotated pseudo-element when checked */
+.show-date-toggle input[type="checkbox"]:checked + label::after {
+    content: "";
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 6px;
+    height: 10px;
+    border-right: 1.5px solid var(--placeholder-color);
+    border-bottom: 1.5px solid var(--placeholder-color);
+    box-sizing: border-box;
+}
+
+/* Focus styles for keyboard users */
+.show-date-toggle input[type="checkbox"]:focus + label::before {
+    box-shadow: 0 0 0 3px rgba(74,144,226,0.18);
+}
+
 .no-select {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -277,6 +368,22 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     border-radius: 4px; /* Request 5: Slightly rounded corners */
     transition: all 0.3s ease;
     text-align: left;
+    position: relative; /* For absolute positioning of date */
+}
+
+/* Event date styling - pill-shaped, bottom right, floating above text */
+.event-Date {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    font-size: 80%; /* 80% of the event text size */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 2px 8px;
+    border-radius: 12px; /* Pill-shaped */
+    white-space: nowrap;
+    pointer-events: none; /* Don't interfere with event clicks */
+    z-index: 1; /* Float above event text */
 }
 .event:hover {
     background: var(--event-hover-bg);
@@ -427,18 +534,10 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
         align-items: flex-start !important;
     }
     
-    /* Place event actions (remove button and date) at the bottom
-       Note: !important is required to override inline styles set by JavaScript */
-    .event .event-content > div {
-        margin-left: 0 !important;
-        margin-top: 0;
-        width: 100%;
-        justify-content: center;
-    }
-    
-    /* Make remove button span almost full width for easier thumb access */
+    /* Make remove button span almost full width for easier thumb access on small screens */
     .event .remove-button {
         width: 95%;
+        margin-top: 8px;
     }
     
     /* Ensure timeline has minimal padding on small screens */
