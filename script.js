@@ -325,8 +325,7 @@ function randomizeEvents() {
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
     // Clear any selected event and placement slots
-    selectedEvent = null;
-    clearPlacementSlots();
+    deselectEvent();
 
     // Update totalPossibleScore based on the unsorted events
     totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
@@ -353,8 +352,7 @@ function shuffleUnsortedEvents() {
     shuffledEvents.forEach(event => unsortedEventsContainer.appendChild(event));
     
     // Clear any selected event and placement slots
-    selectedEvent = null;
-    clearPlacementSlots();
+    deselectEvent();
 }
 
 // Add event listener to Shuffle button
@@ -403,8 +401,7 @@ function resetEvents() {
     updateScoreDisplay();
     
     // Clear any selected event and placement slots
-    selectedEvent = null;
-    clearPlacementSlots();
+    deselectEvent();
     
     // Shuffle the unsorted events
     shuffleUnsortedEvents();
@@ -424,8 +421,7 @@ function clearAllEvents() {
     orderedTimelineContainer.innerHTML = ""; // Clear all events
 
     // Clear selection and placement slots
-    selectedEvent = null;
-    clearPlacementSlots();
+    deselectEvent();
 
     // Reset player score to 0
     playerScore = 0;
@@ -443,6 +439,11 @@ function createEventElement(event, container) {
     let eventElement = document.createElement("div");
     eventElement.classList.add("event", "no-select");
     eventElement.dataset.date = event.date;
+    
+    // Make event keyboard accessible
+    eventElement.setAttribute("tabindex", "0");
+    eventElement.setAttribute("role", "button");
+    eventElement.setAttribute("aria-label", `Event: ${event.name}`);
 
     // Flex container to align text, remove button, and date
     let eventContent = document.createElement("div");
@@ -494,8 +495,9 @@ function createEventElement(event, container) {
     eventElement.appendChild(eventContent);
     container.appendChild(eventElement);
 
-    // Attach click event listeners
+    // Attach click and keyboard event listeners
     addClickListeners(eventElement);
+    addKeyboardListeners(eventElement);
 }
 
 // Function to remove an event (only from unsorted list)
@@ -557,6 +559,29 @@ function addClickListeners(event) {
     });
 }
 
+// Attach keyboard event listeners for accessibility
+function addKeyboardListeners(event) {
+    event.addEventListener('keydown', (e) => {
+        // Only handle Enter and Space keys
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault(); // Prevent scrolling on Space
+            e.stopPropagation(); // Prevent document click handler from deselecting
+            
+            // Only allow selection if event is in unsorted pile
+            if (event.parentNode.id === "unsorted-events") {
+                selectEvent(event);
+            }
+        } else if (e.key === 'Escape') {
+            // Allow Escape key to deselect
+            e.preventDefault();
+            e.stopPropagation();
+            if (selectedEvent) {
+                deselectEvent();
+            }
+        }
+    });
+}
+
 // Function to select an event and show placement slots
 function selectEvent(event) {
     // If clicking the same event that's already selected, deselect it
@@ -612,6 +637,11 @@ function createPlacementSlot(position) {
     slot.classList.add("placement-slot", "no-select");
     slot.dataset.position = position;
     
+    // Make placement slot keyboard accessible
+    slot.setAttribute("tabindex", "0");
+    slot.setAttribute("role", "button");
+    slot.setAttribute("aria-label", `Place event at position ${position + 1}`);
+    
     // Create the line element with gradient
     const line = document.createElement("div");
     line.classList.add("placement-slot-line");
@@ -637,6 +667,15 @@ function createPlacementSlot(position) {
         // Stop propagation to prevent document click handler from deselecting
         e.stopPropagation();
         placeEventAtPosition(position);
+    });
+    
+    // Add keyboard support for placement slots
+    slot.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault(); // Prevent scrolling on Space
+            e.stopPropagation();
+            placeEventAtPosition(position);
+        }
     });
     
     return slot;
