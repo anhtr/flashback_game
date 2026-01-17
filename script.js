@@ -371,9 +371,16 @@ function resetEvents() {
         // Remove correct/incorrect classes
         eventElement.classList.remove('correct', 'incorrect', 'placed');
         
-        // Show remove button again
+        // Handle remove button visibility based on edit mode
         let removeButton = eventElement.querySelector(".remove-button");
-        if (removeButton) removeButton.style.display = "";
+        if (removeButton) {
+            const editMode = document.body.getAttribute('data-edit-mode');
+            if (editMode === 'on') {
+                removeButton.style.display = '';
+            } else {
+                removeButton.style.display = 'none';
+            }
+        }
         
         // Hide the date again
         let eventDate = eventElement.querySelector(".event-Date");
@@ -585,8 +592,28 @@ function showPlacementSlots() {
 function createPlacementSlot(position) {
     const slot = document.createElement("div");
     slot.classList.add("placement-slot", "no-select");
-    slot.textContent = "Click to place here";
     slot.dataset.position = position;
+    
+    // Create the line element with gradient
+    const line = document.createElement("div");
+    line.classList.add("placement-slot-line");
+    slot.appendChild(line);
+    
+    // Create the circle element
+    const circle = document.createElement("div");
+    circle.classList.add("placement-slot-circle");
+    slot.appendChild(circle);
+    
+    // Only add text to the first slot if timeline is empty (no events placed yet)
+    const orderedTimeline = document.getElementById("ordered-timeline");
+    const existingEvents = Array.from(orderedTimeline.children).filter(child => !child.classList.contains('placement-slot'));
+    
+    if (position === 0 && existingEvents.length === 0) {
+        const text = document.createElement("span");
+        text.classList.add("placement-slot-text");
+        text.textContent = "Click to place here";
+        slot.appendChild(text);
+    }
     
     slot.addEventListener('click', () => {
         placeEventAtPosition(position);
