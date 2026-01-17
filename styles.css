@@ -208,15 +208,35 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     font-family: inherit;
 }
 
+/* Place the show-date toggle at the right when it's inside the top controls (flex container) */
+.top-controls .show-date-toggle {
+    margin-left: auto;
+}
+
+/* When the toggle is placed inside the main `.container`, right-align it there as well */
+.container .show-date-toggle {
+    display: flex;
+    justify-content: flex-end;
+    margin-left: auto;
+    margin-bottom: 12px;
+}
+
 .show-date-toggle:hover {
     opacity: 0.7;
 }
 
+/* Monochrome CSS checkbox: hide native visuals but keep input accessible */
 .show-date-toggle input[type="checkbox"] {
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
+    position: absolute;
+    left: auto;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    opacity: 0;
     margin: 0;
+    z-index: 2;
 }
 
 .show-date-toggle label {
@@ -224,6 +244,45 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     margin: 0;
     color: var(--text-color);
     font-style: italic;
+    position: relative;
+    padding-right: 26px; /* space for checkbox on the right */
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Draw the monochrome box */
+.show-date-toggle label::before {
+    content: "";
+    position: absolute;
+    left: auto;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--placeholder-color);
+    border-radius: 3px;
+    background: transparent;
+    box-sizing: border-box;
+}
+
+/* Draw the check mark using a rotated pseudo-element when checked */
+.show-date-toggle input[type="checkbox"]:checked + label::after {
+    content: "";
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 6px;
+    height: 10px;
+    border-right: 1.5px solid var(--placeholder-color);
+    border-bottom: 1.5px solid var(--placeholder-color);
+    box-sizing: border-box;
+}
+
+/* Focus styles for keyboard users */
+.show-date-toggle input[type="checkbox"]:focus + label::before {
+    box-shadow: 0 0 0 3px rgba(74,144,226,0.18);
 }
 
 .no-select {
