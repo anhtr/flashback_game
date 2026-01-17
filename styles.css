@@ -227,17 +227,8 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     border-width: var(--corner-thickness) var(--corner-thickness) 0 0;
 }
 
-/* Bottom corners using box-shadow approach */
+/* Bottom corners using background gradients */
 .timeline {
-    box-shadow:
-        /* Bottom-left corner - vertical line */
-        calc(var(--corner-thickness) / 2) calc(100% - var(--corner-size)) 0 0 var(--corner-color) inset,
-        /* Bottom-left corner - horizontal line */
-        0 calc(100% - var(--corner-thickness) / 2) 0 0 var(--corner-color) inset,
-        /* Bottom-right corner - vertical line */
-        calc(-1 * var(--corner-thickness) / 2) calc(100% - var(--corner-size)) 0 0 var(--corner-color) inset,
-        /* Bottom-right corner - horizontal line */
-        0 calc(100% - var(--corner-thickness) / 2) 0 0 var(--corner-color) inset;
     background-image:
         /* Bottom-left vertical */
         linear-gradient(to bottom, var(--corner-color) 0, var(--corner-color) 100%),
@@ -256,7 +247,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
         0 100%,
         0 100%,
         100% 100%,
-        calc(100% - var(--corner-size)) 100%;
+        calc(100% - var(--corner-size) + var(--corner-thickness)) 100%;
     background-repeat: no-repeat;
 }
 .event {
