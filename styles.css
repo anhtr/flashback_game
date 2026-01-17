@@ -119,6 +119,25 @@ body {
     opacity: 0.8;
 }
 
+/* Fine print footer */
+footer {
+    margin-top: 18px;
+    padding: 8px 12px 20px;
+}
+.fine-print {
+    font-size: 12px;
+    opacity: 0.7;
+    color: var(--text-color);
+    margin: 0;
+    text-align: center;
+}
+
+/* Instruction text reduced to 75% size */
+.instruction {
+    font-size: 75%;
+    margin: 0 0 12px 0;
+}
+
 /* Highlight edit mode button when active */
 body[data-edit-mode="on"] .edit-mode-toggle {
     background-color: #4a90e2;
@@ -337,7 +356,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 .placement-slot-text {
     position: absolute;
     left: 50%;
-    top: -35px; /* Positioned higher to avoid overlap with circle */
+    top: -44px; /* Fixed position to avoid overlap with circle */
     transform: translateX(-50%); /* Center horizontally */
     font-size: 14px;
     color: var(--slot-text);
@@ -349,6 +368,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     padding: 4px 12px;
     border-radius: 12px;
     border: 1px solid var(--slot-border);
+    transition: top 0.12s ease; /* small transition if anything shifts */
 }
 .hidden {
     display: none;
