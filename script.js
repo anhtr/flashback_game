@@ -752,9 +752,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Stop propagation on timeline clicks to prevent document handler from deselecting
     if (orderedTimeline) {
         orderedTimeline.addEventListener('click', (e) => {
-            // Only stop propagation if clicking the container itself or placement slots
-            // Event clicks already stop propagation in addClickListeners
-            if (e.target === orderedTimeline || e.target.closest('.placement-slot')) {
+            // Only stop propagation if clicking the container itself
+            // Event and placement slot clicks already stop propagation in their own handlers
+            if (e.target === orderedTimeline) {
                 e.stopPropagation();
             }
         });
