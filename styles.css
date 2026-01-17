@@ -475,8 +475,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
         align-items: flex-start !important;
     }
     
-    /* Make remove button span almost full width for easier thumb access
-       Note: !important is required to override inline styles set by JavaScript */
+    /* Make remove button span almost full width for easier thumb access on small screens */
     .event .remove-button {
         width: 95%;
         margin-top: 8px;

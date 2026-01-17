@@ -104,13 +104,13 @@
     
     // Exit early if elements don't exist
     if (!showDateToggle || !showDateCheckbox) {
-        console.warn('Show date toggle elements not found');
+        console.warn('Show date toggle button or checkbox not found');
         return;
     }
     
     // Show date is on by default, or use saved preference
     const savedShowDate = localStorage.getItem('showDate');
-    const currentShowDate = savedShowDate ?? 'on';
+    const currentShowDate = savedShowDate !== null ? savedShowDate : 'on';
     
     // Apply the show date preference
     document.body.setAttribute('data-show-date', currentShowDate);
@@ -531,7 +531,7 @@ function createEventElement(event, container) {
     // Date element - positioned absolutely at bottom right
     let eventDate = document.createElement("span");
     eventDate.classList.add("event-Date", "hidden");
-    eventDate.textContent = event.date; // Will be formatted when revealed
+    eventDate.textContent = event.date; // Will be formatted by checkEventOrder() function
     eventElement.appendChild(eventDate);
     
     container.appendChild(eventElement);
