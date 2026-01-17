@@ -237,7 +237,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
         /* Bottom-right vertical */
         linear-gradient(to bottom, var(--corner-color) 0, var(--corner-color) 100%),
         /* Bottom-right horizontal */
-        linear-gradient(to right, var(--corner-color) 0, var(--corner-color) 100%);
+        linear-gradient(to left, var(--corner-color) 0, var(--corner-color) 100%);
     background-size:
         var(--corner-thickness) var(--corner-size),
         var(--corner-size) var(--corner-thickness),
@@ -247,7 +247,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
         0 100%,
         0 100%,
         100% 100%,
-        calc(100% - var(--corner-size) + var(--corner-thickness)) 100%;
+        100% 100%;
     background-repeat: no-repeat;
 }
 .event {
