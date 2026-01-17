@@ -41,6 +41,8 @@
     --slot-hover-bg: rgba(135, 206, 235, 0.5);
     --slot-border: #4169E1;
     --slot-text: #4169E1;
+    --slot-circle-size: 16px;
+    --slot-circle-hover-size: 20px;
     --button-bg: #f0f0f0;
     --button-text: #000000;
     --button-border: #ccc;
@@ -68,6 +70,8 @@
     --slot-hover-bg: rgba(30, 77, 123, 0.5);
     --slot-border: #4a90e2;
     --slot-text: #4a90e2;
+    --slot-circle-size: 16px;
+    --slot-circle-hover-size: 20px;
     --button-bg: #1a1a1a;
     --button-text: #e0e0e0;
     --button-border: #555;
@@ -115,6 +119,25 @@ body {
     opacity: 0.8;
 }
 
+/* Fine print footer */
+footer {
+    margin-top: 18px;
+    padding: 8px 12px 20px;
+}
+.fine-print {
+    font-size: 12px;
+    opacity: 0.7;
+    color: var(--text-color);
+    margin: 0;
+    text-align: center;
+}
+
+/* Instruction text reduced to 75% size */
+.instruction {
+    font-size: 75%;
+    margin: 0 0 12px 0;
+}
+
 /* Highlight edit mode button when active */
 body[data-edit-mode="on"] .edit-mode-toggle {
     background-color: #4a90e2;
@@ -158,6 +181,19 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 .copy-link-btn:hover {
     opacity: 0.8;
 }
+
+/* Score display with pill-shaped box */
+#result {
+    font-weight: bold;
+    font-size: 16px;
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    /* Inverted colors: text color = background, box color = opposite */
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
+
 .no-select {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -172,18 +208,73 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 .timeline {
     display: flex;
     flex-direction: column;
+    justify-content: center; /* Request 1: Center content when empty */
     gap: 10px;
     padding: 20px;
-    border: 1px solid var(--border-color);
+    border: none;
     min-height: 100px;
     background-color: var(--bg-color);
     transition: background-color 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    
+    /* Corner borders */
+    --corner-size: 20px;
+    --corner-thickness: 2px;
+    --corner-color: var(--border-color);
+}
+
+/* Top-left and top-right corner borders using pseudo-elements */
+.timeline::before,
+.timeline::after {
+    content: '';
+    position: absolute;
+    width: var(--corner-size);
+    height: var(--corner-size);
+    border-color: var(--corner-color);
+    border-style: solid;
+}
+
+.timeline::before {
+    top: 0;
+    left: 0;
+    border-width: var(--corner-thickness) 0 0 var(--corner-thickness);
+}
+
+.timeline::after {
+    top: 0;
+    right: 0;
+    border-width: var(--corner-thickness) var(--corner-thickness) 0 0;
+}
+
+/* Bottom corners using background gradients */
+.timeline {
+    background-image:
+        /* Bottom-left vertical */
+        linear-gradient(to bottom, var(--corner-color) 0, var(--corner-color) 100%),
+        /* Bottom-left horizontal */
+        linear-gradient(to right, var(--corner-color) 0, var(--corner-color) 100%),
+        /* Bottom-right vertical */
+        linear-gradient(to bottom, var(--corner-color) 0, var(--corner-color) 100%),
+        /* Bottom-right horizontal */
+        linear-gradient(to left, var(--corner-color) 0, var(--corner-color) 100%);
+    background-size:
+        var(--corner-thickness) var(--corner-size),
+        var(--corner-size) var(--corner-thickness),
+        var(--corner-thickness) var(--corner-size),
+        var(--corner-size) var(--corner-thickness);
+    background-position:
+        0 100%,
+        0 100%,
+        100% 100%,
+        100% 100%;
+    background-repeat: no-repeat;
 }
 .event {
     padding: 10px;
     background: var(--event-bg);
     cursor: pointer;
-    border: 1px solid var(--event-border);
+    border: none; /* Request 3: Remove outline/border */
+    border-radius: 4px; /* Request 5: Slightly rounded corners */
     transition: all 0.3s ease;
     text-align: left;
 }
@@ -192,7 +283,8 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 }
 .event.selected {
     background: var(--event-selected-bg);
-    border: 2px solid var(--event-selected-border);
+    border: none; /* Request 3: Remove outline/border */
+    box-shadow: 0 0 0 2px var(--event-selected-border); /* Use box-shadow instead of border */
 }
 .correct {
     background: var(--correct-bg) !important;
@@ -201,20 +293,82 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     background: var(--incorrect-bg) !important;
 }
 .placement-slot {
-    height: 40px;
-    background: var(--slot-bg);
-    border: 2px dashed var(--slot-border);
+    height: 0;
     cursor: pointer;
-    margin: 5px 0;
+    margin: -5px 0; /* Negative margin to compensate for timeline gap */
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    color: var(--slot-text);
+    position: relative;
     transition: all 0.3s ease;
 }
-.placement-slot:hover {
-    background: var(--slot-hover-bg);
+
+/* Clickable area overlay - positioned absolutely to not affect layout */
+.placement-slot::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 20px; /* Clickable area */
+    top: -10px; /* Center the clickable area */
+    cursor: pointer;
+    z-index: 1;
+}
+
+/* Horizontal line with gradient - opaque in middle, transparent at ends */
+.placement-slot-line {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, 
+        transparent 0%, 
+        var(--slot-border) 25%, 
+        var(--slot-border) 75%, 
+        transparent 100%);
+    z-index: 2;
+    pointer-events: none;
+    transition: height 0.3s ease; /* Request 2: Add transition for line weight */
+}
+
+/* Request 2: Increase line weight on hover */
+.placement-slot:hover .placement-slot-line {
+    height: 3px;
+}
+
+/* Filled circle at the center */
+.placement-slot-circle {
+    position: absolute;
+    width: var(--slot-circle-size);
+    height: var(--slot-circle-size);
+    border-radius: 50%;
+    background-color: var(--slot-border);
+    z-index: 3;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.placement-slot:hover .placement-slot-circle {
+    width: var(--slot-circle-hover-size);
+    height: var(--slot-circle-hover-size);
+    background-color: var(--slot-text);
+}
+
+/* Text styling for placement slots - pill-shaped box above the circle */
+.placement-slot-text {
+    position: absolute;
+    left: 50%;
+    top: -44px; /* Fixed position to avoid overlap with circle */
+    transform: translateX(-50%); /* Center horizontally */
+    font-size: 14px;
+    color: var(--slot-text);
+    white-space: nowrap;
+    z-index: 4;
+    pointer-events: none;
+    /* Pill-shaped background box */
+    background-color: var(--bg-color);
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--slot-border);
+    transition: top 0.12s ease; /* small transition if anything shifts */
 }
 .hidden {
     display: none;
