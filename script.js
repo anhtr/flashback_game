@@ -97,6 +97,55 @@
     window.EditMode.updateRemoveButtonsVisibility = updateRemoveButtonsVisibility;
 })();
 
+// Show date toggle functionality
+(function() {
+    const showDateToggle = document.getElementById('show-date-toggle');
+    const showDateCheckbox = document.getElementById('show-date-checkbox');
+    
+    // Exit early if elements don't exist
+    if (!showDateToggle || !showDateCheckbox) {
+        console.warn('Show date toggle elements not found');
+        return;
+    }
+    
+    // Show date is on by default, or use saved preference
+    const savedShowDate = localStorage.getItem('showDate');
+    const currentShowDate = savedShowDate ?? 'on';
+    
+    // Apply the show date preference
+    document.body.setAttribute('data-show-date', currentShowDate);
+    showDateCheckbox.checked = currentShowDate === 'on';
+    updateDateVisibility(currentShowDate);
+    
+    // Toggle show date on checkbox change
+    showDateCheckbox.addEventListener('change', () => {
+        const newShowDate = showDateCheckbox.checked ? 'on' : 'off';
+        
+        document.body.setAttribute('data-show-date', newShowDate);
+        localStorage.setItem('showDate', newShowDate);
+        updateDateVisibility(newShowDate);
+    });
+    
+    function updateDateVisibility(mode) {
+        // Only affect dates in the ordered timeline
+        const orderedTimeline = document.getElementById('ordered-timeline');
+        if (orderedTimeline) {
+            const dates = orderedTimeline.querySelectorAll('.event-Date');
+            dates.forEach(date => {
+                if (mode === 'on') {
+                    date.classList.remove('hidden');
+                } else {
+                    date.classList.add('hidden');
+                }
+            });
+        }
+    }
+    
+    // Make the update function globally accessible
+    window.ShowDate = window.ShowDate || {};
+    window.ShowDate.updateDateVisibility = updateDateVisibility;
+})();
+
 // Function to encode events to URL format using lz-string compression
 function encodeEventsToURL(events) {
     // Check if LZString is available
@@ -458,12 +507,6 @@ function createEventElement(event, container) {
     eventText.classList.add("event-text");
     eventText.textContent = event.name;
 
-    // Container for remove button and date
-    let eventActions = document.createElement("div");
-    eventActions.style.display = "flex";
-    eventActions.style.alignItems = "center";
-    eventActions.style.marginLeft = "auto"; // Align to the right
-
     // Remove button
     let removeButton = document.createElement("button");
     removeButton.classList.add("remove-button", "no-select");
@@ -479,20 +522,18 @@ function createEventElement(event, container) {
         removeButton.style.display = 'none';
     }
 
-    // Hidden date span (for later reveal)
-    let eventDate = document.createElement("span");
-    eventDate.classList.add("event-Date", "hidden");
-    eventDate.textContent = ` (${event.date})`;
-
-    // Append elements to event actions container
-    eventActions.appendChild(removeButton);
-    eventActions.appendChild(eventDate); // Hidden date initially
-
-    // Append text and event actions to the main content container
+    // Append text and remove button to the main content container
     eventContent.appendChild(eventText);
-    eventContent.appendChild(eventActions);
+    eventContent.appendChild(removeButton);
     
     eventElement.appendChild(eventContent);
+
+    // Date element - positioned absolutely at bottom right
+    let eventDate = document.createElement("span");
+    eventDate.classList.add("event-Date", "hidden");
+    eventDate.textContent = event.date; // Will be formatted when revealed
+    eventElement.appendChild(eventDate);
+    
     container.appendChild(eventElement);
 
     // Attach click and keyboard event listeners
@@ -723,18 +764,30 @@ function clearPlacementSlots() {
     slots.forEach(slot => slot.remove());
 }
 
-// Format date function
+// Format date function - uses locale-specific formatting
 function formatDate(dateString) {
-    const [year, month, day] = dateString.split("-");
-    return `${month}/${day}/${year}`;
+    const date = new Date(dateString);
+    // Use the user's locale for date formatting
+    return date.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+    });
 }
 
 // Check if event is in the correct order
 function checkEventOrder(placedEvent) {
     let dateElement = placedEvent.querySelector('.event-Date');
     if (dateElement) {
-        dateElement.textContent = " (" + formatDate(placedEvent.dataset.date) + ")";
-        dateElement.classList.remove('hidden');
+        // Format date without parentheses
+        dateElement.textContent = formatDate(placedEvent.dataset.date);
+        // Check if show date is enabled
+        const showDateMode = document.body.getAttribute('data-show-date');
+        if (showDateMode === 'on') {
+            dateElement.classList.remove('hidden');
+        } else {
+            dateElement.classList.add('hidden');
+        }
     }
 
     let targetTimeline = document.querySelector('#ordered-timeline');

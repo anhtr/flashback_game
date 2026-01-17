@@ -194,6 +194,38 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     color: var(--bg-color);
 }
 
+/* Show date toggle button */
+.show-date-toggle {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.3s ease;
+    font-family: inherit;
+}
+
+.show-date-toggle:hover {
+    opacity: 0.7;
+}
+
+.show-date-toggle input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+.show-date-toggle label {
+    cursor: pointer;
+    margin: 0;
+    color: var(--text-color);
+    font-style: italic;
+}
+
 .no-select {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -277,6 +309,22 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     border-radius: 4px; /* Request 5: Slightly rounded corners */
     transition: all 0.3s ease;
     text-align: left;
+    position: relative; /* For absolute positioning of date */
+}
+
+/* Event date styling - pill-shaped, bottom right, floating above text */
+.event-Date {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    font-size: 80%; /* 80% of the event text size */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 2px 8px;
+    border-radius: 12px; /* Pill-shaped */
+    white-space: nowrap;
+    pointer-events: none; /* Don't interfere with event clicks */
+    z-index: 1; /* Float above event text */
 }
 .event:hover {
     background: var(--event-hover-bg);
@@ -427,18 +475,11 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
         align-items: flex-start !important;
     }
     
-    /* Place event actions (remove button and date) at the bottom
+    /* Make remove button span almost full width for easier thumb access
        Note: !important is required to override inline styles set by JavaScript */
-    .event .event-content > div {
-        margin-left: 0 !important;
-        margin-top: 0;
-        width: 100%;
-        justify-content: center;
-    }
-    
-    /* Make remove button span almost full width for easier thumb access */
     .event .remove-button {
         width: 95%;
+        margin-top: 8px;
     }
     
     /* Ensure timeline has minimal padding on small screens */
