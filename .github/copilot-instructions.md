@@ -25,7 +25,7 @@ Important files and examples
 
 Project-specific conventions and patterns
 - DOM-driven state: The authoritative state is both `eventsData` (array) and DOM elements—many operations manipulate DOM directly rather than a separate state-model. When changing UI behavior, update both DOM and `eventsData` where appropriate.
-- Dates as yyyy-mm-dd strings: Event `date` values are stored as `YYYY-MM-DD` and parsed with `new Date(...)`. Keep this format when adding events or modifying serialization.
+- Dates as YYYY-MM-DD strings: Event `date` values are stored as `YYYY-MM-DD` and parsed with `new Date(...)`. Keep this format when adding events or modifying serialization.
 - Edit mode gating: The `data-edit-mode` attribute on `body` toggles visibility of `.remove-button` elements; `window.EditMode.updateRemoveButtonsVisibility()` is used by dynamic additions.
 - Shareable link flow: After loading events from URL, the app clears URL params using `clearURLParameters()` to return to data-less state; tests or changes that rely on URL should consider this behavior.
 
