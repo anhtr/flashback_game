@@ -514,8 +514,7 @@ function removeEvent(eventElement, eventName) {
 
     // Clear selection if this was the selected event
     if (selectedEvent === eventElement) {
-        selectedEvent = null;
-        clearPlacementSlots();
+        deselectEvent();
     }
 
     // Update totalPossibleScore based on the remaining events
@@ -715,8 +714,7 @@ function placeEventAtPosition(position) {
     checkEventOrder(selectedEvent);
     
     // Clear placement slots and selection
-    clearPlacementSlots();
-    selectedEvent = null;
+    deselectEvent();
 }
 
 // Function to clear all placement slots
