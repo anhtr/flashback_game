@@ -368,7 +368,7 @@ const EventPool = {
         const availableEvents = this.getAvailableEvents(eventsData, usedDates);
         
         if (availableEvents.length === 0) {
-            return null; // No events available
+            return []; // Return empty array for consistency
         }
         
         // Get up to 'count' random events
@@ -604,7 +604,7 @@ function startNewGame() {
         // Get random events that don't have duplicate dates
         const newEvents = EventPool.getRandomEvents(EVENTS_TO_ADD);
         
-        if (newEvents === null || newEvents.length === 0) {
+        if (newEvents.length === 0) {
             // Show error message using toast
             showToast('⚠ No more events available in the event pool.');
             return;
