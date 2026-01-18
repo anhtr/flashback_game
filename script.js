@@ -329,6 +329,54 @@ let totalPossibleScore = 0;
 let selectedEvent = null;
 let eventsData = [];
 const EVENTS_PER_GAME = 7;
+const EVENTS_TO_ADD = 7;
+
+// Reusable module for random event selection with deduplication
+const EventPool = {
+    // Get dates that are already in use on the page
+    getUsedDates() {
+        const orderedTimeline = document.getElementById("ordered-timeline");
+        const unsortedEvents = document.getElementById("unsorted-events");
+        
+        const usedDates = new Set();
+        
+        // Collect dates from ordered timeline
+        Array.from(orderedTimeline.children).forEach(eventElement => {
+            if (eventElement.dataset.date) {
+                usedDates.add(eventElement.dataset.date);
+            }
+        });
+        
+        // Collect dates from unsorted events
+        Array.from(unsortedEvents.children).forEach(eventElement => {
+            if (eventElement.dataset.date) {
+                usedDates.add(eventElement.dataset.date);
+            }
+        });
+        
+        return usedDates;
+    },
+    
+    // Get available events that don't have dates already in use
+    getAvailableEvents(allEvents, usedDates) {
+        return allEvents.filter(event => !usedDates.has(event.date));
+    },
+    
+    // Get N random events from available pool
+    getRandomEvents(count) {
+        const usedDates = this.getUsedDates();
+        const availableEvents = this.getAvailableEvents(eventsData, usedDates);
+        
+        if (availableEvents.length === 0) {
+            return []; // Return empty array for consistency
+        }
+        
+        // Get up to 'count' random events
+        const eventsToSelect = Math.min(count, availableEvents.length);
+        const shuffled = shuffleArray(availableEvents);
+        return shuffled.slice(0, eventsToSelect);
+    }
+};
 
 // Function to create and add events dynamically
 function loadEvents() {
@@ -540,6 +588,35 @@ function startNewGame() {
         if (e.target === dialogOverlay) {
             dialogOverlay.classList.add('hidden');
         }
+    });
+})();
+
+// Add More button functionality
+(function() {
+    const addMoreBtn = document.getElementById('add-more-btn');
+    
+    if (!addMoreBtn) {
+        console.warn('Add more button not found');
+        return;
+    }
+    
+    addMoreBtn.addEventListener('click', () => {
+        // Get random events that don't have duplicate dates
+        const newEvents = EventPool.getRandomEvents(EVENTS_TO_ADD);
+        
+        if (newEvents.length === 0) {
+            // Show error message using toast
+            showToast('⚠ No more events available in the event pool.');
+            return;
+        }
+        
+        // Add the new events to the unsorted events container
+        const unsortedEventsContainer = document.getElementById("unsorted-events");
+        newEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+        
+        // Update totalPossibleScore
+        totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+        updateScoreDisplay();
     });
 })();
 
