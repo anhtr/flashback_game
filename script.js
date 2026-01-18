@@ -328,6 +328,7 @@ let playerScore = 0;
 let totalPossibleScore = 0;
 let selectedEvent = null;
 let eventsData = [];
+const EVENTS_PER_GAME = 7;
 
 // Function to create and add events dynamically
 function loadEvents() {
@@ -343,13 +344,13 @@ function loadEvents() {
             
             // If no URL events, load initial random events
             if (!hasURLEvents) {
-                const randomEvents = shuffleArray([...eventsData]).slice(0, 7);
+                const randomEvents = shuffleArray([...eventsData]).slice(0, EVENTS_PER_GAME);
                 const unsortedEventsContainer = document.getElementById("unsorted-events");
                 unsortedEventsContainer.innerHTML = ""; // Clear existing events
                 randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
-                // Set total possible score to 7
-                totalPossibleScore = 7;
+                // Set total possible score
+                totalPossibleScore = EVENTS_PER_GAME;
                 updateScoreDisplay();
             }
         })
@@ -368,7 +369,7 @@ function shuffleArray(array) {
 
 // Function to randomize events on button click
 function randomizeEvents() {
-    const randomEvents = shuffleArray(eventsData).slice(0, 7);
+    const randomEvents = shuffleArray(eventsData).slice(0, EVENTS_PER_GAME);
     const unsortedEventsContainer = document.getElementById("unsorted-events");
     unsortedEventsContainer.innerHTML = ""; // Clear existing events
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
@@ -482,6 +483,65 @@ function clearAllEvents() {
 
 // Add event listener to Clear All button
 document.getElementById("clear-all-btn").addEventListener("click", clearAllEvents);
+
+// Function to start a new game - clears everything and loads random events
+function startNewGame() {
+    // Clear both timelines
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    const orderedTimelineContainer = document.getElementById("ordered-timeline");
+    unsortedEventsContainer.innerHTML = "";
+    orderedTimelineContainer.innerHTML = "";
+    
+    // Clear selection and placement slots
+    deselectEvent();
+    
+    // Reset player score
+    playerScore = 0;
+    
+    // Load new random events (same as initial page load)
+    const randomEvents = shuffleArray([...eventsData]).slice(0, EVENTS_PER_GAME);
+    randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+    
+    // Set total possible score
+    totalPossibleScore = EVENTS_PER_GAME;
+    updateScoreDisplay();
+}
+
+// New Game button functionality
+(function() {
+    const newGameBtn = document.getElementById('new-game-btn');
+    const dialogOverlay = document.getElementById('new-game-dialog');
+    const dialogYesBtn = document.getElementById('dialog-yes-btn');
+    const dialogNoBtn = document.getElementById('dialog-no-btn');
+    
+    if (!newGameBtn || !dialogOverlay || !dialogYesBtn || !dialogNoBtn) {
+        console.warn('New game button or dialog elements not found');
+        return;
+    }
+    
+    // Show dialog when New game button is clicked
+    newGameBtn.addEventListener('click', () => {
+        dialogOverlay.classList.remove('hidden');
+    });
+    
+    // Handle Yes button - start new game and hide dialog
+    dialogYesBtn.addEventListener('click', () => {
+        dialogOverlay.classList.add('hidden');
+        startNewGame();
+    });
+    
+    // Handle No button - just hide dialog
+    dialogNoBtn.addEventListener('click', () => {
+        dialogOverlay.classList.add('hidden');
+    });
+    
+    // Close dialog when clicking outside the dialog box
+    dialogOverlay.addEventListener('click', (e) => {
+        if (e.target === dialogOverlay) {
+            dialogOverlay.classList.add('hidden');
+        }
+    });
+})();
 
 // Function to create an event element
 function createEventElement(event, container) {
