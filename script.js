@@ -328,6 +328,7 @@ let playerScore = 0;
 let totalPossibleScore = 0;
 let selectedEvent = null;
 let eventsData = [];
+const EVENTS_PER_GAME = 7;
 
 // Function to create and add events dynamically
 function loadEvents() {
@@ -343,13 +344,13 @@ function loadEvents() {
             
             // If no URL events, load initial random events
             if (!hasURLEvents) {
-                const randomEvents = shuffleArray([...eventsData]).slice(0, 7);
+                const randomEvents = shuffleArray([...eventsData]).slice(0, EVENTS_PER_GAME);
                 const unsortedEventsContainer = document.getElementById("unsorted-events");
                 unsortedEventsContainer.innerHTML = ""; // Clear existing events
                 randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
-                // Set total possible score to 7
-                totalPossibleScore = 7;
+                // Set total possible score
+                totalPossibleScore = EVENTS_PER_GAME;
                 updateScoreDisplay();
             }
         })
@@ -368,7 +369,7 @@ function shuffleArray(array) {
 
 // Function to randomize events on button click
 function randomizeEvents() {
-    const randomEvents = shuffleArray(eventsData).slice(0, 7);
+    const randomEvents = shuffleArray(eventsData).slice(0, EVENTS_PER_GAME);
     const unsortedEventsContainer = document.getElementById("unsorted-events");
     unsortedEventsContainer.innerHTML = ""; // Clear existing events
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
@@ -498,11 +499,11 @@ function startNewGame() {
     playerScore = 0;
     
     // Load new random events (same as initial page load)
-    const randomEvents = shuffleArray([...eventsData]).slice(0, 7);
+    const randomEvents = shuffleArray([...eventsData]).slice(0, EVENTS_PER_GAME);
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
     
-    // Set total possible score to 7
-    totalPossibleScore = 7;
+    // Set total possible score
+    totalPossibleScore = EVENTS_PER_GAME;
     updateScoreDisplay();
 }
 
