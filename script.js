@@ -269,8 +269,9 @@ function loadEventsFromURL() {
             // Load events from URL (don't populate eventsData here - it will be loaded from JSON)
             events.forEach(event => createEventElement(event, unsortedEventsContainer));
             
-            // Update totalPossibleScore
-            totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+            // Update totalPossibleScore (first event doesn't count)
+            const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+            totalPossibleScore = Math.max(0, totalEvents - 1);
             updateScoreDisplay();
             
             // Clear URL parameters to return to data-less state
@@ -328,7 +329,7 @@ let playerScore = 0;
 let totalPossibleScore = 0;
 let selectedEvent = null;
 let eventsData = [];
-const EVENTS_PER_GAME = 7;
+const EVENTS_PER_GAME = 8;
 const EVENTS_TO_ADD = 7;
 
 // Reusable module for random event selection with deduplication
@@ -397,8 +398,8 @@ function loadEvents() {
                 unsortedEventsContainer.innerHTML = ""; // Clear existing events
                 randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
-                // Set total possible score
-                totalPossibleScore = EVENTS_PER_GAME;
+                // Set total possible score (first event doesn't count)
+                totalPossibleScore = EVENTS_PER_GAME - 1;
                 updateScoreDisplay();
             }
         })
@@ -425,8 +426,9 @@ function randomizeEvents() {
     // Clear any selected event and placement slots
     deselectEvent();
 
-    // Update totalPossibleScore based on the unsorted events
-    totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+    // Update totalPossibleScore based on the unsorted events (first event doesn't count)
+    const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+    totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 }
 
@@ -494,8 +496,8 @@ function resetEvents() {
     // Reset player score
     playerScore = 0;
     
-    // Update total possible score
-    totalPossibleScore = unsortedEventsContainer.children.length;
+    // Update total possible score (first event doesn't count)
+    totalPossibleScore = Math.max(0, unsortedEventsContainer.children.length - 1);
     updateScoreDisplay();
     
     // Clear any selected event and placement slots
@@ -524,8 +526,9 @@ function clearAllEvents() {
     // Reset player score to 0
     playerScore = 0;
 
-    // Update total possible score based on the remaining events in both lists
-    totalPossibleScore = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
+    // Update total possible score based on the remaining events in both lists (first event doesn't count)
+    const totalEvents = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
+    totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 }
 
@@ -550,8 +553,8 @@ function startNewGame() {
     const randomEvents = shuffleArray([...eventsData]).slice(0, EVENTS_PER_GAME);
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
     
-    // Set total possible score
-    totalPossibleScore = EVENTS_PER_GAME;
+    // Set total possible score (first event doesn't count)
+    totalPossibleScore = EVENTS_PER_GAME - 1;
     updateScoreDisplay();
 }
 
@@ -614,8 +617,9 @@ function startNewGame() {
         const unsortedEventsContainer = document.getElementById("unsorted-events");
         newEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
         
-        // Update totalPossibleScore
-        totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+        // Update totalPossibleScore (first event doesn't count)
+        const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+        totalPossibleScore = Math.max(0, totalEvents - 1);
         updateScoreDisplay();
     });
 })();
@@ -695,8 +699,9 @@ function removeEvent(eventElement, eventName) {
         deselectEvent();
     }
 
-    // Update totalPossibleScore based on the remaining events
-    totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
+    // Update totalPossibleScore based on the remaining events (first event doesn't count)
+    const totalEvents = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
+    totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 }
 
@@ -714,8 +719,9 @@ function addEvent() {
     eventsData.push(newEvent);
     createEventElement(newEvent, document.getElementById("unsorted-events"));
 
-    // Update totalPossibleScore based on the unsorted events
-    totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
+    // Update totalPossibleScore based on the unsorted events (first event doesn't count)
+    const totalEvents = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
+    totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 
     // Clear input fields
@@ -940,11 +946,17 @@ function checkEventOrder(placedEvent) {
     let currentIndex = allEvents.indexOf(placedEvent);
     
     if (!placedEvent.dataset.initialAnswer) {
+        // Check if this is the first event being placed in the timeline
+        const isFirstEvent = otherEvents.length === 0;
+        
         if (currentIndex === correctIndex) {
             placedEvent.classList.add('correct');
             placedEvent.classList.remove('incorrect');
             placedEvent.dataset.initialAnswer = 'correct';
-            playerScore++;
+            // Only award points if this is NOT the first event
+            if (!isFirstEvent) {
+                playerScore++;
+            }
         } else {
             placedEvent.classList.add('incorrect');
             placedEvent.classList.remove('correct');
