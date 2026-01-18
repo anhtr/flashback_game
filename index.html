@@ -34,10 +34,12 @@
         <h3> Unsorted events</h3>
         <div id="unsorted-events" class="timeline"></div>
         <br>
-        <button id="shuffle-btn" title="Shuffle"><span class="btn-emoji">🔀</span><span class="btn-text"> Shuffle</span></button>
-        <button id="reset-btn" title="Reset"><span class="btn-emoji">⬇</span><span class="btn-text"> Reset</span></button>
-        <button id="randomize-btn" title="Randomize"><span class="btn-emoji">🎲</span><span class="btn-text"> Randomize</span></button>
+        <button id="new-game-btn" title="New game"><span class="btn-emoji">🆕</span><span class="btn-text"> New game</span></button>
+        <button id="add-more-btn" title="Add more"><span class="btn-emoji">➕</span><span class="btn-text"> Add more</span></button>
         <button class="edit-mode-toggle" id="edit-mode-toggle" aria-label="Edit mode is off" title="Edit"><span class="btn-emoji">✏</span><span class="btn-text"> Edit</span></button>
+        <button id="shuffle-btn" class="edit-mode-only" title="Shuffle"><span class="btn-emoji">🔀</span><span class="btn-text"> Shuffle</span></button>
+        <button id="reset-btn" class="edit-mode-only" title="Reset"><span class="btn-emoji">⬇</span><span class="btn-text"> Reset</span></button>
+        <button id="randomize-btn" class="edit-mode-only" title="Randomize"><span class="btn-emoji">🎲</span><span class="btn-text"> Randomize</span></button>
         <button id="clear-all-btn" class="edit-mode-only" title="Clear all"><span class="btn-emoji">🗑</span><span class="btn-text"> Clear All</span></button>
     </div>
     <div class="edit-mode-only">
@@ -46,6 +48,18 @@
         <input type="date" id="event-date">
         <button onclick="addEvent()">Add Event</button>
     </div>
+    
+    <!-- Dialog for New Game confirmation -->
+    <div id="new-game-dialog" class="dialog-overlay hidden">
+        <div class="dialog-box">
+            <p class="dialog-message">Start a fresh new game?</p>
+            <div class="dialog-buttons">
+                <button id="dialog-yes-btn" class="dialog-btn">Yes</button>
+                <button id="dialog-no-btn" class="dialog-btn">No</button>
+            </div>
+        </div>
+    </div>
+    
     <script src="script.js"></script>
     <footer>
         <p class="fine-print">For entertainment purposes only. Events are scraped from Wikipedia's Selected Anniversaries pages. May not work on all browser/devices.</p>

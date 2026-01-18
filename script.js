@@ -269,8 +269,9 @@ function loadEventsFromURL() {
             // Load events from URL (don't populate eventsData here - it will be loaded from JSON)
             events.forEach(event => createEventElement(event, unsortedEventsContainer));
             
-            // Update totalPossibleScore
-            totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+            // Update totalPossibleScore (first event doesn't count)
+            const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+            totalPossibleScore = Math.max(0, totalEvents - 1);
             updateScoreDisplay();
             
             // Clear URL parameters to return to data-less state
@@ -328,6 +329,55 @@ let playerScore = 0;
 let totalPossibleScore = 0;
 let selectedEvent = null;
 let eventsData = [];
+const EVENTS_PER_GAME = 8;
+const EVENTS_TO_ADD = 7;
+
+// Reusable module for random event selection with deduplication
+const EventPool = {
+    // Get dates that are already in use on the page
+    getUsedDates() {
+        const orderedTimeline = document.getElementById("ordered-timeline");
+        const unsortedEvents = document.getElementById("unsorted-events");
+        
+        const usedDates = new Set();
+        
+        // Collect dates from ordered timeline
+        Array.from(orderedTimeline.children).forEach(eventElement => {
+            if (eventElement.dataset.date) {
+                usedDates.add(eventElement.dataset.date);
+            }
+        });
+        
+        // Collect dates from unsorted events
+        Array.from(unsortedEvents.children).forEach(eventElement => {
+            if (eventElement.dataset.date) {
+                usedDates.add(eventElement.dataset.date);
+            }
+        });
+        
+        return usedDates;
+    },
+    
+    // Get available events that don't have dates already in use
+    getAvailableEvents(allEvents, usedDates) {
+        return allEvents.filter(event => !usedDates.has(event.date));
+    },
+    
+    // Get N random events from available pool
+    getRandomEvents(count) {
+        const usedDates = this.getUsedDates();
+        const availableEvents = this.getAvailableEvents(eventsData, usedDates);
+        
+        if (availableEvents.length === 0) {
+            return []; // Return empty array for consistency
+        }
+        
+        // Get up to 'count' random events
+        const eventsToSelect = Math.min(count, availableEvents.length);
+        const shuffled = shuffleArray(availableEvents);
+        return shuffled.slice(0, eventsToSelect);
+    }
+};
 
 // Function to create and add events dynamically
 function loadEvents() {
@@ -343,13 +393,13 @@ function loadEvents() {
             
             // If no URL events, load initial random events
             if (!hasURLEvents) {
-                const randomEvents = shuffleArray([...eventsData]).slice(0, 7);
+                const randomEvents = shuffleArray([...eventsData]).slice(0, EVENTS_PER_GAME);
                 const unsortedEventsContainer = document.getElementById("unsorted-events");
                 unsortedEventsContainer.innerHTML = ""; // Clear existing events
                 randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
-                // Set total possible score to 7
-                totalPossibleScore = 7;
+                // Set total possible score (first event doesn't count)
+                totalPossibleScore = EVENTS_PER_GAME - 1;
                 updateScoreDisplay();
             }
         })
@@ -368,7 +418,7 @@ function shuffleArray(array) {
 
 // Function to randomize events on button click
 function randomizeEvents() {
-    const randomEvents = shuffleArray(eventsData).slice(0, 7);
+    const randomEvents = shuffleArray(eventsData).slice(0, EVENTS_PER_GAME);
     const unsortedEventsContainer = document.getElementById("unsorted-events");
     unsortedEventsContainer.innerHTML = ""; // Clear existing events
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
@@ -376,8 +426,9 @@ function randomizeEvents() {
     // Clear any selected event and placement slots
     deselectEvent();
 
-    // Update totalPossibleScore based on the unsorted events
-    totalPossibleScore = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+    // Update totalPossibleScore based on the unsorted events (first event doesn't count)
+    const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+    totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 }
 
@@ -445,8 +496,8 @@ function resetEvents() {
     // Reset player score
     playerScore = 0;
     
-    // Update total possible score
-    totalPossibleScore = unsortedEventsContainer.children.length;
+    // Update total possible score (first event doesn't count)
+    totalPossibleScore = Math.max(0, unsortedEventsContainer.children.length - 1);
     updateScoreDisplay();
     
     // Clear any selected event and placement slots
@@ -475,13 +526,103 @@ function clearAllEvents() {
     // Reset player score to 0
     playerScore = 0;
 
-    // Update total possible score based on the remaining events in both lists
-    totalPossibleScore = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
+    // Update total possible score based on the remaining events in both lists (first event doesn't count)
+    const totalEvents = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
+    totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 }
 
 // Add event listener to Clear All button
 document.getElementById("clear-all-btn").addEventListener("click", clearAllEvents);
+
+// Function to start a new game - clears everything and loads random events
+function startNewGame() {
+    // Clear both timelines
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    const orderedTimelineContainer = document.getElementById("ordered-timeline");
+    unsortedEventsContainer.innerHTML = "";
+    orderedTimelineContainer.innerHTML = "";
+    
+    // Clear selection and placement slots
+    deselectEvent();
+    
+    // Reset player score
+    playerScore = 0;
+    
+    // Load new random events (same as initial page load)
+    const randomEvents = shuffleArray([...eventsData]).slice(0, EVENTS_PER_GAME);
+    randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+    
+    // Set total possible score (first event doesn't count)
+    totalPossibleScore = EVENTS_PER_GAME - 1;
+    updateScoreDisplay();
+}
+
+// New Game button functionality
+(function() {
+    const newGameBtn = document.getElementById('new-game-btn');
+    const dialogOverlay = document.getElementById('new-game-dialog');
+    const dialogYesBtn = document.getElementById('dialog-yes-btn');
+    const dialogNoBtn = document.getElementById('dialog-no-btn');
+    
+    if (!newGameBtn || !dialogOverlay || !dialogYesBtn || !dialogNoBtn) {
+        console.warn('New game button or dialog elements not found');
+        return;
+    }
+    
+    // Show dialog when New game button is clicked
+    newGameBtn.addEventListener('click', () => {
+        dialogOverlay.classList.remove('hidden');
+    });
+    
+    // Handle Yes button - start new game and hide dialog
+    dialogYesBtn.addEventListener('click', () => {
+        dialogOverlay.classList.add('hidden');
+        startNewGame();
+    });
+    
+    // Handle No button - just hide dialog
+    dialogNoBtn.addEventListener('click', () => {
+        dialogOverlay.classList.add('hidden');
+    });
+    
+    // Close dialog when clicking outside the dialog box
+    dialogOverlay.addEventListener('click', (e) => {
+        if (e.target === dialogOverlay) {
+            dialogOverlay.classList.add('hidden');
+        }
+    });
+})();
+
+// Add More button functionality
+(function() {
+    const addMoreBtn = document.getElementById('add-more-btn');
+    
+    if (!addMoreBtn) {
+        console.warn('Add more button not found');
+        return;
+    }
+    
+    addMoreBtn.addEventListener('click', () => {
+        // Get random events that don't have duplicate dates
+        const newEvents = EventPool.getRandomEvents(EVENTS_TO_ADD);
+        
+        if (newEvents.length === 0) {
+            // Show error message using toast
+            showToast('⚠ No more events available in the event pool.');
+            return;
+        }
+        
+        // Add the new events to the unsorted events container
+        const unsortedEventsContainer = document.getElementById("unsorted-events");
+        newEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+        
+        // Update totalPossibleScore (first event doesn't count)
+        const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
+        totalPossibleScore = Math.max(0, totalEvents - 1);
+        updateScoreDisplay();
+    });
+})();
 
 // Function to create an event element
 function createEventElement(event, container) {
@@ -558,8 +699,9 @@ function removeEvent(eventElement, eventName) {
         deselectEvent();
     }
 
-    // Update totalPossibleScore based on the remaining events
-    totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
+    // Update totalPossibleScore based on the remaining events (first event doesn't count)
+    const totalEvents = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
+    totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 }
 
@@ -577,8 +719,9 @@ function addEvent() {
     eventsData.push(newEvent);
     createEventElement(newEvent, document.getElementById("unsorted-events"));
 
-    // Update totalPossibleScore based on the unsorted events
-    totalPossibleScore = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
+    // Update totalPossibleScore based on the unsorted events (first event doesn't count)
+    const totalEvents = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
+    totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 
     // Clear input fields
@@ -803,11 +946,17 @@ function checkEventOrder(placedEvent) {
     let currentIndex = allEvents.indexOf(placedEvent);
     
     if (!placedEvent.dataset.initialAnswer) {
+        // Check if this is the first event being placed in the timeline
+        const isFirstEvent = otherEvents.length === 0;
+        
         if (currentIndex === correctIndex) {
             placedEvent.classList.add('correct');
             placedEvent.classList.remove('incorrect');
             placedEvent.dataset.initialAnswer = 'correct';
-            playerScore++;
+            // Only award points if this is NOT the first event
+            if (!isFirstEvent) {
+                playerScore++;
+            }
         } else {
             placedEvent.classList.add('incorrect');
             placedEvent.classList.remove('correct');
