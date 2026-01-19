@@ -1,3 +1,33 @@
+/* 
+===============================================================================
+FONT DECLARATIONS - Self-hosted Noto variable fonts
+===============================================================================
+Purpose:
+  Self-hosted fonts ensure consistent typography across all browsers/platforms
+  and eliminate dependency on external font services (Google Fonts, etc).
+
+Fonts:
+  1. Noto Serif (variable): Main body text font
+     - Variable weight: 100-900 (thin to black)
+     - Variable width: 62.5%-100% (condensed to normal)
+     - Separate files for normal and italic styles
+     - Used for: All text content (body, headings, events, UI)
+
+  2. Noto Emoji (variable): Monochrome emoji support
+     - Variable weight: 300-700
+     - Black & white emoji glyphs (no color)
+     - Used for: Button icons, decorative elements
+     - Fallback: System "Noto Color Emoji" provides color emoji if glyph missing
+
+font-display: swap:
+  Shows fallback font immediately, then swaps to Noto when loaded.
+  Prevents Flash of Invisible Text (FOIT) - text is readable during font load.
+
+Font Stack (see body):
+  'Noto Serif' → 'Noto Emoji' → 'Noto Color Emoji' → Georgia → 'Times New Roman' → serif
+  Serif fonts selected for elegant, timeless aesthetic suitable for historical events.
+*/
+
 /* Noto Serif font-face declarations */
 @font-face {
     font-family: 'Noto Serif';
@@ -24,6 +54,39 @@
     font-style: normal;
     font-display: swap;
 }
+
+/* 
+===============================================================================
+CSS CUSTOM PROPERTIES (VARIABLES) - Theme system colors
+===============================================================================
+Purpose:
+  Centralized color management via CSS variables enables instant theme switching
+  without re-rendering or re-parsing styles. All colors reference these vars.
+
+Theme Mechanism:
+  1. :root (default): Light mode colors
+  2. [data-theme="dark"]: Dark mode override (set via JS on <html>)
+  3. JavaScript: Theme toggle button in script.js sets data-theme attribute
+  4. Persistence: Theme saved to localStorage, applied immediately on load
+     (inline script in index.html <head> prevents flash)
+
+Color Naming Convention:
+  Variables named by purpose, not appearance:
+  - --bg-color: Page background
+  - --text-color: Primary text
+  - --event-bg: Event card background
+  - --correct-bg: Correct placement feedback
+  etc.
+
+Dark Mode Strategy (OLED-friendly):
+  - Pure black background (#000000) for OLED power savings and deep contrast
+  - Muted colors (lower saturation) to reduce eye strain
+  - Lighter borders/text for visibility on dark background
+
+Transition Handling:
+  Many elements have `transition: background-color 0.3s ease` etc.
+  When theme changes, CSS variables update instantly, triggering smooth transitions.
+*/
 
 :root {
     /* Light mode colors */
@@ -194,6 +257,39 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     color: var(--bg-color);
 }
 
+/* 
+===============================================================================
+MONOCHROME CSS-DRAWN CHECKBOX - Cross-browser consistent appearance
+===============================================================================
+Purpose:
+  Custom checkbox implementation that looks identical across all browsers.
+  Native checkboxes vary wildly in appearance (iOS rounded, Android square, etc).
+
+Strategy:
+  1. Hide native checkbox visually (opacity: 0) but keep it accessible
+  2. Draw custom box using label::before pseudo-element
+  3. Draw check mark using label::after pseudo-element (only when checked)
+  4. Position checkbox to right of label text via padding-right
+
+Why This Approach:
+  - Tried accent-color: Not supported everywhere, inconsistent rendering
+  - Tried filter:grayscale: Doesn't remove color checkbox on some platforms
+  - CSS-drawn solution: 100% control, guaranteed monochrome appearance
+
+Implementation Details:
+  - Native input: opacity:0, position:absolute, still receives clicks/keyboard
+  - Box (label::before): 18×18px square, 1.5px border, rounded corners
+  - Check (label::after): Rotated border technique (common CSS trick)
+    - 6px width, 10px height
+    - border-right + border-bottom rotated 45° creates check mark shape
+  - Colors: var(--placeholder-color) for lighter gray (not pure text color)
+
+Accessibility:
+  - Native input still accessible to screen readers (not display:none)
+  - Keyboard focus visible via box-shadow on label::before
+  - Click target includes both visual box and hidden native input
+*/
+
 /* Show date toggle button */
 .show-date-toggle {
     background-color: transparent;
@@ -285,6 +381,42 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     box-shadow: 0 0 0 3px rgba(74,144,226,0.18);
 }
 
+/* 
+===============================================================================
+TIMELINE CONTAINERS - Corner border technique
+===============================================================================
+Purpose:
+  Visual framing for ordered/unsorted timeline areas using decorative corner
+  borders only (not full rectangles). Creates elegant, minimal aesthetic.
+
+Corner Border Implementation:
+  Combines pseudo-elements (::before, ::after) and gradient backgrounds
+  to draw borders at all four corners without using separate elements.
+
+Technique Breakdown:
+  1. Top corners: Use ::before (left) and ::after (right) pseudo-elements
+     - Positioned absolutely at top-left/top-right
+     - border-width creates L-shapes (only two sides have borders)
+     - Example: top-left has border-top and border-left only
+
+  2. Bottom corners: Use multiple linear-gradient backgrounds
+     - Can't use more pseudo-elements (already used ::before/::after for top)
+     - Four gradients stacked: two vertical, two horizontal
+     - background-position places them at bottom-left and bottom-right
+     - background-size controls length of corner borders
+
+CSS Custom Properties:
+  --corner-size: 20px (length of each corner border line)
+  --corner-thickness: 2px (width of border lines)
+  --corner-color: var(--border-color) (theme-aware)
+
+Why This Approach:
+  - No extra DOM elements needed (purely CSS)
+  - Adapts to any container size
+  - Theme-aware via CSS variables
+  - More elegant than full border rectangle
+*/
+
 .no-select {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -308,7 +440,7 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     transition: background-color 0.3s ease, border-color 0.3s ease;
     position: relative;
     
-    /* Corner borders */
+    /* Corner border configuration */
     --corner-size: 20px;
     --corner-thickness: 2px;
     --corner-color: var(--border-color);
@@ -337,16 +469,16 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     border-width: var(--corner-thickness) var(--corner-thickness) 0 0;
 }
 
-/* Bottom corners using background gradients */
+/* Bottom corners using background gradients (since ::before/::after already used) */
 .timeline {
     background-image:
-        /* Bottom-left vertical */
+        /* Bottom-left vertical line */
         linear-gradient(to bottom, var(--corner-color) 0, var(--corner-color) 100%),
-        /* Bottom-left horizontal */
+        /* Bottom-left horizontal line */
         linear-gradient(to right, var(--corner-color) 0, var(--corner-color) 100%),
-        /* Bottom-right vertical */
+        /* Bottom-right vertical line */
         linear-gradient(to bottom, var(--corner-color) 0, var(--corner-color) 100%),
-        /* Bottom-right horizontal */
+        /* Bottom-right horizontal line */
         linear-gradient(to left, var(--corner-color) 0, var(--corner-color) 100%);
     background-size:
         var(--corner-thickness) var(--corner-size),
@@ -436,6 +568,44 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 .incorrect {
     background: var(--incorrect-bg) !important;
 }
+/* 
+===============================================================================
+PLACEMENT SLOTS - Interactive drop targets with gradient line and circle
+===============================================================================
+Purpose:
+  Visual indicators showing where selected event can be placed in timeline.
+  Appears between/around existing events when one is selected.
+
+Visual Design:
+  - Horizontal gradient line (opaque center, transparent ends)
+  - Filled circle at center
+  - Hover effects: line thickens, circle grows
+  - Optional text label ("Click to place here") on first slot if timeline empty
+
+Implementation Strategy:
+  1. Container (. placement-slot): height:0 to not disrupt timeline gap spacing
+  2. Invisible clickable overlay (::before pseudo): 20px height for easy clicking
+  3. Gradient line (.placement-slot-line): Positioned absolutely, doesn't affect layout
+  4. Circle (.placement-slot-circle): Centered via absolute positioning
+  5. Text (.placement-slot-text): Above circle, pill-shaped background box
+
+Gradient Line Technique:
+  linear-gradient(to right, transparent 0%, color 25%, color 75%, transparent 100%)
+  - Fades in from 0-25% (left edge)
+  - Solid from 25-75% (center)
+  - Fades out from 75-100% (right edge)
+  Creates elegant "emerging from timeline" effect.
+
+Hover Animations:
+  - Line: height 2px → 3px (subtle thickening)
+  - Circle: 16px → 20px diameter, color change to --slot-text
+  - All transitions: 0.3s ease for smooth visual feedback
+
+Negative Margin Trick:
+  margin: -5px 0 compensates for timeline's gap:10px.
+  Without this, slots would create extra spacing between events.
+*/
+
 .placement-slot {
     height: 0;
     cursor: pointer;
@@ -517,6 +687,37 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
 .hidden {
     display: none;
 }
+
+/* 
+===============================================================================
+RESPONSIVE DESIGN - Progressive font condensing for narrow screens
+===============================================================================
+Purpose:
+  On small screens, long event names can overflow or wrap awkwardly.
+  Instead of reducing font-size (harder to read), we condense the font width.
+
+Strategy:
+  Use Noto Serif Variable's font-variation-settings: "wdth" (width axis).
+  Progressively condense as screen gets narrower.
+
+Breakpoints and Width Values:
+  > 768px: 100% width (normal, full-width glyphs)
+  ≤ 768px: 100% width (start of condensing)
+  ≤ 700px:  95% width (slight condensing)
+  ≤ 600px:  90% width (noticeable condensing)
+  ≤ 500px:  85% width (more condensed)
+  ≤ 400px:  80% width (quite condensed, but still readable)
+
+Why This Works:
+  - Variable fonts support continuous width axis (62.5% - 100% for Noto Serif)
+  - Condensing preserves font-size (legibility) while saving horizontal space
+  - More elegant than wrapping text or reducing overall size
+  - Applies to all text (body selector), maintains consistent typography
+
+Noto Serif's Width Range:
+  Declared in @font-face: font-stretch: 62.5% 100%
+  We use: 80%-100% (middle-to-wide range for readability)
+*/
 
 /* Variable font width for small screens - progressive condensing */
 @media screen and (max-width: 768px) {
