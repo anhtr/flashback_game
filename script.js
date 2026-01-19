@@ -516,6 +516,18 @@ function randomizeEvents() {
     // Get the current number of events in unsorted area
     const currentEventCount = unsortedEventsContainer.children.length;
     
+    // Handle edge case: if unsorted area is empty, do nothing
+    if (currentEventCount === 0) {
+        showToast('⚠ No events to randomize in the unsorted area.');
+        return;
+    }
+    
+    // Save current events before clearing (in case we need to restore them)
+    const currentEvents = Array.from(unsortedEventsContainer.children).map(eventElement => ({
+        name: eventElement.querySelector('.event-text').textContent,
+        date: eventElement.dataset.date
+    }));
+    
     // Clear existing events in unsorted area
     unsortedEventsContainer.innerHTML = "";
     
@@ -524,6 +536,10 @@ function randomizeEvents() {
     const newEvents = EventPool.getRandomEvents(currentEventCount);
     
     if (newEvents.length === 0) {
+        // Restore original events since we couldn't get new ones
+        currentEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+        sortUnsortedEventsByIndex();
+        
         // Show error message using toast
         showToast('⚠ No more events available in the event pool.');
         return;
