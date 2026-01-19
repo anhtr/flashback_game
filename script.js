@@ -511,13 +511,26 @@ function shuffleArray(array) {
 
 // Function to randomize events on button click
 function randomizeEvents() {
-    const randomEvents = shuffleArray(eventsData).slice(0, EVENTS_PER_GAME);
     const unsortedEventsContainer = document.getElementById("unsorted-events");
-    unsortedEventsContainer.innerHTML = ""; // Clear existing events
     
-    // Reset the index counter before creating new events
-    nextEventIndex = 1;
-    randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+    // Get the current number of events in unsorted area
+    const currentEventCount = unsortedEventsContainer.children.length;
+    
+    // Clear existing events in unsorted area
+    unsortedEventsContainer.innerHTML = "";
+    
+    // Get random events using EventPool (handles deduplication)
+    // Note: Do NOT reset nextEventIndex - continue the sequence
+    const newEvents = EventPool.getRandomEvents(currentEventCount);
+    
+    if (newEvents.length === 0) {
+        // Show error message using toast
+        showToast('⚠ No more events available in the event pool.');
+        return;
+    }
+    
+    // Add the new events to unsorted events container
+    newEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
     // Sort unsorted events by their index
     sortUnsortedEventsByIndex();
