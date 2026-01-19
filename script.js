@@ -35,6 +35,65 @@
     }
 })();
 
+// Debug mode toggle functionality
+(function() {
+    const debugToggle = document.getElementById('debug-toggle');
+    
+    // Exit early if debug toggle element doesn't exist
+    if (!debugToggle) {
+        console.warn('Debug toggle button not found');
+        return;
+    }
+    
+    // Debug mode is off by default, or use saved preference
+    const savedDebugMode = localStorage.getItem('debugMode');
+    const currentDebugMode = savedDebugMode ?? 'off';
+    
+    // Apply the debug mode
+    document.body.setAttribute('data-debug-mode', currentDebugMode);
+    updateDebugModeButton(currentDebugMode);
+    updateDebugIndicesVisibility(currentDebugMode);
+    
+    // Toggle debug mode on button click
+    debugToggle.addEventListener('click', () => {
+        const activeDebugMode = document.body.getAttribute('data-debug-mode');
+        const newDebugMode = activeDebugMode === 'on' ? 'off' : 'on';
+        
+        document.body.setAttribute('data-debug-mode', newDebugMode);
+        localStorage.setItem('debugMode', newDebugMode);
+        updateDebugModeButton(newDebugMode);
+        updateDebugIndicesVisibility(newDebugMode);
+    });
+    
+    function updateDebugModeButton(mode) {
+        if (mode === 'on') {
+            debugToggle.innerHTML = '<span class="btn-emoji">🪲</span><span class="btn-text"> Debug mode: ON</span>';
+            debugToggle.setAttribute('aria-label', 'Debug mode is on, click to turn off');
+            debugToggle.setAttribute('title', 'Debug mode: ON');
+        } else {
+            debugToggle.innerHTML = '<span class="btn-emoji">🪲</span><span class="btn-text"> Debug mode: OFF</span>';
+            debugToggle.setAttribute('aria-label', 'Debug mode is off, click to turn on');
+            debugToggle.setAttribute('title', 'Debug mode: OFF');
+        }
+    }
+    
+    function updateDebugIndicesVisibility(mode) {
+        const debugIndices = document.querySelectorAll('.event-debug-index');
+        debugIndices.forEach(index => {
+            if (mode === 'on') {
+                index.classList.remove('hidden');
+            } else {
+                index.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Make the update function globally accessible
+    // This is needed when new events are created dynamically
+    window.DebugMode = window.DebugMode || {};
+    window.DebugMode.updateDebugIndicesVisibility = updateDebugIndicesVisibility;
+})();
+
 // Edit mode toggle functionality
 (function() {
     const editModeToggle = document.getElementById('edit-mode-toggle');
@@ -745,6 +804,21 @@ function createEventElement(event, container) {
     eventDate.classList.add("event-Date", "hidden");
     eventDate.textContent = event.date; // Will be formatted by checkEventOrder() function
     eventElement.appendChild(eventDate);
+    
+    // Debug index element - positioned absolutely at top right (only if event has an index)
+    if (eventElement.dataset.eventIndex) {
+        let debugIndex = document.createElement("span");
+        debugIndex.classList.add("event-debug-index");
+        debugIndex.textContent = `#${eventElement.dataset.eventIndex}`;
+        
+        // Check if debug mode is on
+        const debugMode = document.body.getAttribute('data-debug-mode');
+        if (debugMode !== 'on') {
+            debugIndex.classList.add('hidden');
+        }
+        
+        eventElement.appendChild(debugIndex);
+    }
     
     container.appendChild(eventElement);
 
