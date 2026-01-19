@@ -35,6 +35,65 @@
     }
 })();
 
+// Debug mode toggle functionality
+(function() {
+    const debugToggle = document.getElementById('debug-toggle');
+    
+    // Exit early if debug toggle element doesn't exist
+    if (!debugToggle) {
+        console.warn('Debug toggle button not found');
+        return;
+    }
+    
+    // Debug mode is off by default, or use saved preference
+    const savedDebugMode = localStorage.getItem('debugMode');
+    const currentDebugMode = savedDebugMode ?? 'off';
+    
+    // Apply the debug mode
+    document.body.setAttribute('data-debug-mode', currentDebugMode);
+    updateDebugModeButton(currentDebugMode);
+    updateDebugIndicesVisibility(currentDebugMode);
+    
+    // Toggle debug mode on button click
+    debugToggle.addEventListener('click', () => {
+        const activeDebugMode = document.body.getAttribute('data-debug-mode');
+        const newDebugMode = activeDebugMode === 'on' ? 'off' : 'on';
+        
+        document.body.setAttribute('data-debug-mode', newDebugMode);
+        localStorage.setItem('debugMode', newDebugMode);
+        updateDebugModeButton(newDebugMode);
+        updateDebugIndicesVisibility(newDebugMode);
+    });
+    
+    function updateDebugModeButton(mode) {
+        if (mode === 'on') {
+            debugToggle.innerHTML = '<span class="btn-emoji">🪲</span><span class="btn-text"> Debug mode: ON</span>';
+            debugToggle.setAttribute('aria-label', 'Debug mode is on, click to turn off');
+            debugToggle.setAttribute('title', 'Debug mode: ON');
+        } else {
+            debugToggle.innerHTML = '<span class="btn-emoji">🪲</span><span class="btn-text"> Debug mode: OFF</span>';
+            debugToggle.setAttribute('aria-label', 'Debug mode is off, click to turn on');
+            debugToggle.setAttribute('title', 'Debug mode: OFF');
+        }
+    }
+    
+    function updateDebugIndicesVisibility(mode) {
+        const debugIndices = document.querySelectorAll('.event-debug-index');
+        debugIndices.forEach(index => {
+            if (mode === 'on') {
+                index.classList.remove('hidden');
+            } else {
+                index.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Make the update function globally accessible
+    // This is needed when new events are created dynamically
+    window.DebugMode = window.DebugMode || {};
+    window.DebugMode.updateDebugIndicesVisibility = updateDebugIndicesVisibility;
+})();
+
 // Edit mode toggle functionality
 (function() {
     const editModeToggle = document.getElementById('edit-mode-toggle');
@@ -250,6 +309,9 @@ function loadEventsFromURL() {
             const unsortedEventsContainer = document.getElementById("unsorted-events");
             unsortedEventsContainer.innerHTML = "";
             
+            // Reset the index counter when loading from URL (starting fresh)
+            nextEventIndex = 1;
+            
             // Update totalPossibleScore
             totalPossibleScore = 0;
             updateScoreDisplay();
@@ -266,8 +328,14 @@ function loadEventsFromURL() {
             const unsortedEventsContainer = document.getElementById("unsorted-events");
             unsortedEventsContainer.innerHTML = "";
             
+            // Reset the index counter when loading from URL (starting fresh with shared events)
+            nextEventIndex = 1;
+            
             // Load events from URL (don't populate eventsData here - it will be loaded from JSON)
             events.forEach(event => createEventElement(event, unsortedEventsContainer));
+            
+            // Sort unsorted events by their index
+            sortUnsortedEventsByIndex();
             
             // Update totalPossibleScore (first event doesn't count)
             const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
@@ -329,8 +397,30 @@ let playerScore = 0;
 let totalPossibleScore = 0;
 let selectedEvent = null;
 let eventsData = [];
+let nextEventIndex = 1; // Track the next sequential index number for events
 const EVENTS_PER_GAME = 8;
 const EVENTS_TO_ADD = 7;
+
+// Function to sort unsorted events by their index numbers
+function sortUnsortedEventsByIndex() {
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    const events = Array.from(unsortedEventsContainer.children);
+    
+    if (events.length === 0) {
+        return; // Nothing to sort
+    }
+    
+    // Sort events by their index (stored in data-event-index attribute)
+    events.sort((a, b) => {
+        const indexA = parseInt(a.dataset.eventIndex || '0', 10);
+        const indexB = parseInt(b.dataset.eventIndex || '0', 10);
+        return indexA - indexB;
+    });
+    
+    // Clear the container and re-append in sorted order
+    unsortedEventsContainer.innerHTML = "";
+    events.forEach(event => unsortedEventsContainer.appendChild(event));
+}
 
 // Reusable module for random event selection with deduplication
 const EventPool = {
@@ -398,6 +488,9 @@ function loadEvents() {
                 unsortedEventsContainer.innerHTML = ""; // Clear existing events
                 randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
+                // Sort unsorted events by their index
+                sortUnsortedEventsByIndex();
+
                 // Set total possible score (first event doesn't count)
                 totalPossibleScore = EVENTS_PER_GAME - 1;
                 updateScoreDisplay();
@@ -418,10 +511,53 @@ function shuffleArray(array) {
 
 // Function to randomize events on button click
 function randomizeEvents() {
-    const randomEvents = shuffleArray(eventsData).slice(0, EVENTS_PER_GAME);
     const unsortedEventsContainer = document.getElementById("unsorted-events");
-    unsortedEventsContainer.innerHTML = ""; // Clear existing events
-    randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+    
+    // Get the current number of events in unsorted area
+    const currentEventCount = unsortedEventsContainer.children.length;
+    
+    // Handle edge case: if unsorted area is empty, do nothing
+    if (currentEventCount === 0) {
+        showToast('⚠ No events to randomize in the unsorted area.');
+        return;
+    }
+    
+    // Save current events before clearing (in case we need to restore them)
+    const currentEvents = Array.from(unsortedEventsContainer.children)
+        .map(eventElement => {
+            const eventText = eventElement.querySelector('.event-text');
+            if (!eventText || !eventElement.dataset.date) {
+                return null; // Skip malformed events
+            }
+            return {
+                name: eventText.textContent,
+                date: eventElement.dataset.date
+            };
+        })
+        .filter(event => event !== null); // Remove any null entries
+    
+    // Clear existing events in unsorted area
+    unsortedEventsContainer.innerHTML = "";
+    
+    // Get random events using EventPool (handles deduplication)
+    // Note: Do NOT reset nextEventIndex - continue the sequence
+    const newEvents = EventPool.getRandomEvents(currentEventCount);
+    
+    if (newEvents.length === 0) {
+        // Restore original events since we couldn't get new ones
+        currentEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+        sortUnsortedEventsByIndex();
+        
+        // Show error message using toast
+        showToast('⚠ No more events available in the event pool.');
+        return;
+    }
+    
+    // Add the new events to unsorted events container
+    newEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+
+    // Sort unsorted events by their index
+    sortUnsortedEventsByIndex();
 
     // Clear any selected event and placement slots
     deselectEvent();
@@ -444,12 +580,25 @@ function shuffleUnsortedEvents() {
         return; // Nothing to shuffle
     }
     
-    // Shuffle the events array
-    const shuffledEvents = shuffleArray(events);
+    // Get current indices from events
+    const currentIndices = events.map(event => parseInt(event.dataset.eventIndex, 10));
     
-    // Clear the container and re-append in new order
-    unsortedEventsContainer.innerHTML = "";
-    shuffledEvents.forEach(event => unsortedEventsContainer.appendChild(event));
+    // Shuffle the indices array
+    const shuffledIndices = shuffleArray(currentIndices);
+    
+    // Reassign the shuffled indices to the events
+    events.forEach((event, idx) => {
+        event.dataset.eventIndex = shuffledIndices[idx];
+        
+        // Update the debug index display if it exists
+        const debugIndex = event.querySelector('.event-debug-index');
+        if (debugIndex) {
+            debugIndex.textContent = `#${shuffledIndices[idx]}`;
+        }
+    });
+    
+    // Sort events by their new index (which will reorder them based on shuffled indices)
+    sortUnsortedEventsByIndex();
     
     // Clear any selected event and placement slots
     deselectEvent();
@@ -468,6 +617,12 @@ function resetEvents() {
     orderedEvents.forEach(eventElement => {
         // Remove correct/incorrect classes
         eventElement.classList.remove('correct', 'incorrect', 'placed');
+        
+        // Restore index if it doesn't have one (it should already have one from when it was created)
+        if (!eventElement.dataset.eventIndex) {
+            eventElement.dataset.eventIndex = nextEventIndex;
+            nextEventIndex++;
+        }
         
         // Handle remove button visibility based on edit mode
         let removeButton = eventElement.querySelector(".remove-button");
@@ -503,36 +658,31 @@ function resetEvents() {
     // Clear any selected event and placement slots
     deselectEvent();
     
-    // Shuffle the unsorted events
-    shuffleUnsortedEvents();
+    // Sort the unsorted events by index to maintain order
+    sortUnsortedEventsByIndex();
 }
 
 // Add event listener to Reset button
 document.getElementById("reset-btn").addEventListener("click", resetEvents);
 
-// Function to clear all events
+// Function to clear unsorted events only
 function clearAllEvents() {
-    // Clear unsorted events
+    // Clear unsorted events only (not ordered timeline)
     const unsortedEventsContainer = document.getElementById("unsorted-events");
     unsortedEventsContainer.innerHTML = ""; // Clear all events
 
-    // Clear ordered timeline events
-    const orderedTimelineContainer = document.getElementById("ordered-timeline");
-    orderedTimelineContainer.innerHTML = ""; // Clear all events
-
     // Clear selection and placement slots
     deselectEvent();
+    
+    // Do NOT reset the index counter - sequence keeps going up unless a new game starts
 
-    // Reset player score to 0
-    playerScore = 0;
-
-    // Update total possible score based on the remaining events in both lists (first event doesn't count)
-    const totalEvents = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
+    // Update total possible score based on the remaining events (first event doesn't count)
+    const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
     totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 }
 
-// Add event listener to Clear All button
+// Add event listener to Clear button
 document.getElementById("clear-all-btn").addEventListener("click", clearAllEvents);
 
 // Function to start a new game - clears everything and loads random events
@@ -549,9 +699,15 @@ function startNewGame() {
     // Reset player score
     playerScore = 0;
     
+    // Reset the index counter
+    nextEventIndex = 1;
+    
     // Load new random events (same as initial page load)
     const randomEvents = shuffleArray([...eventsData]).slice(0, EVENTS_PER_GAME);
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+    
+    // Sort unsorted events by their index
+    sortUnsortedEventsByIndex();
     
     // Set total possible score (first event doesn't count)
     totalPossibleScore = EVENTS_PER_GAME - 1;
@@ -617,6 +773,9 @@ function startNewGame() {
         const unsortedEventsContainer = document.getElementById("unsorted-events");
         newEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
         
+        // Sort unsorted events by their index
+        sortUnsortedEventsByIndex();
+        
         // Update totalPossibleScore (first event doesn't count)
         const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
         totalPossibleScore = Math.max(0, totalEvents - 1);
@@ -630,25 +789,25 @@ function createEventElement(event, container) {
     eventElement.classList.add("event", "no-select");
     eventElement.dataset.date = event.date;
     
+    // Assign sequential index number only when adding to unsorted events
+    // (not when loading from ordered timeline in shareable links)
+    if (container.id === "unsorted-events") {
+        eventElement.dataset.eventIndex = nextEventIndex;
+        nextEventIndex++;
+    }
+    
     // Make event keyboard accessible
     eventElement.setAttribute("tabindex", "0");
     eventElement.setAttribute("role", "button");
     eventElement.setAttribute("aria-label", `Event: ${event.name}`);
 
-    // Flex container to align text, remove button, and date
-    let eventContent = document.createElement("div");
-    eventContent.classList.add("event-content");
-    eventContent.style.display = "flex";
-    eventContent.style.justifyContent = "space-between";
-    eventContent.style.alignItems = "center";
-    eventContent.style.width = "100%";
-
     // Event text
     let eventText = document.createElement("span");
     eventText.classList.add("event-text");
     eventText.textContent = event.name;
+    eventElement.appendChild(eventText);
 
-    // Remove button
+    // Remove button - positioned absolutely at top left
     let removeButton = document.createElement("button");
     removeButton.classList.add("remove-button", "no-select");
     removeButton.textContent = "Remove";
@@ -662,18 +821,29 @@ function createEventElement(event, container) {
     if (editMode !== 'on') {
         removeButton.style.display = 'none';
     }
-
-    // Append text and remove button to the main content container
-    eventContent.appendChild(eventText);
-    eventContent.appendChild(removeButton);
     
-    eventElement.appendChild(eventContent);
+    eventElement.appendChild(removeButton);
 
     // Date element - positioned absolutely at bottom right
     let eventDate = document.createElement("span");
     eventDate.classList.add("event-Date", "hidden");
     eventDate.textContent = event.date; // Will be formatted by checkEventOrder() function
     eventElement.appendChild(eventDate);
+    
+    // Debug index element - positioned absolutely at top right (only if event has an index)
+    if (eventElement.dataset.eventIndex) {
+        let debugIndex = document.createElement("span");
+        debugIndex.classList.add("event-debug-index");
+        debugIndex.textContent = `#${eventElement.dataset.eventIndex}`;
+        
+        // Check if debug mode is on
+        const debugMode = document.body.getAttribute('data-debug-mode');
+        if (debugMode !== 'on') {
+            debugIndex.classList.add('hidden');
+        }
+        
+        eventElement.appendChild(debugIndex);
+    }
     
     container.appendChild(eventElement);
 
@@ -718,6 +888,9 @@ function addEvent() {
     let newEvent = { name: eventName, date: eventDate };
     eventsData.push(newEvent);
     createEventElement(newEvent, document.getElementById("unsorted-events"));
+
+    // Sort unsorted events by their index
+    sortUnsortedEventsByIndex();
 
     // Update totalPossibleScore based on the unsorted events (first event doesn't count)
     const totalEvents = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;

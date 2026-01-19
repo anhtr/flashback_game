@@ -385,6 +385,43 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     pointer-events: none; /* Don't interfere with event clicks */
     z-index: 1; /* Float above event text */
 }
+
+/* Event debug index styling - pill-shaped, top right, floating above text */
+.event-debug-index {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 80%; /* 80% of the event text size */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 2px 8px;
+    border-radius: 12px; /* Pill-shaped */
+    white-space: nowrap;
+    pointer-events: none; /* Don't interfere with event clicks */
+    z-index: 1; /* Float above event text */
+}
+
+/* Remove button styling - positioned absolutely at bottom right, floating above text */
+.event .remove-button {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    font-size: 12px;
+    padding: 4px 8px;
+    background-color: #d32f2f; /* Red background */
+    color: #ffffff; /* White text for contrast */
+    border: 1px solid #b71c1c; /* Darker red border */
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 2; /* Float above event text and other elements */
+    pointer-events: auto; /* Allow clicks on the button */
+    transition: opacity 0.3s ease;
+}
+
+.event .remove-button:hover {
+    opacity: 0.8;
+}
+
 .event:hover {
     background: var(--event-hover-bg);
 }
@@ -525,19 +562,6 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
         width: 100%;
         margin: 0;
         padding: 0 10px;
-    }
-    
-    /* Stack event content vertically on small screens 
-       Note: !important is required to override inline styles set by JavaScript */
-    .event .event-content {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-    }
-    
-    /* Make remove button span almost full width for easier thumb access on small screens */
-    .event .remove-button {
-        width: 95%;
-        margin-top: 8px;
     }
     
     /* Ensure timeline has minimal padding on small screens */
