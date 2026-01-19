@@ -385,6 +385,22 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     pointer-events: none; /* Don't interfere with event clicks */
     z-index: 1; /* Float above event text */
 }
+
+/* Event debug index styling - pill-shaped, top right, floating above text */
+.event-debug-index {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 80%; /* 80% of the event text size */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 2px 8px;
+    border-radius: 12px; /* Pill-shaped */
+    white-space: nowrap;
+    pointer-events: none; /* Don't interfere with event clicks */
+    z-index: 1; /* Float above event text */
+}
+
 .event:hover {
     background: var(--event-hover-bg);
 }
