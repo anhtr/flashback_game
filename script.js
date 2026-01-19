@@ -250,6 +250,9 @@ function loadEventsFromURL() {
             const unsortedEventsContainer = document.getElementById("unsorted-events");
             unsortedEventsContainer.innerHTML = "";
             
+            // Reset the index counter when loading from URL (starting fresh)
+            nextEventIndex = 1;
+            
             // Update totalPossibleScore
             totalPossibleScore = 0;
             updateScoreDisplay();
@@ -266,8 +269,14 @@ function loadEventsFromURL() {
             const unsortedEventsContainer = document.getElementById("unsorted-events");
             unsortedEventsContainer.innerHTML = "";
             
+            // Reset the index counter when loading from URL (starting fresh with shared events)
+            nextEventIndex = 1;
+            
             // Load events from URL (don't populate eventsData here - it will be loaded from JSON)
             events.forEach(event => createEventElement(event, unsortedEventsContainer));
+            
+            // Sort unsorted events by their index
+            sortUnsortedEventsByIndex();
             
             // Update totalPossibleScore (first event doesn't count)
             const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
@@ -329,8 +338,30 @@ let playerScore = 0;
 let totalPossibleScore = 0;
 let selectedEvent = null;
 let eventsData = [];
+let nextEventIndex = 1; // Track the next sequential index number for events
 const EVENTS_PER_GAME = 8;
 const EVENTS_TO_ADD = 7;
+
+// Function to sort unsorted events by their index numbers
+function sortUnsortedEventsByIndex() {
+    const unsortedEventsContainer = document.getElementById("unsorted-events");
+    const events = Array.from(unsortedEventsContainer.children);
+    
+    if (events.length === 0) {
+        return; // Nothing to sort
+    }
+    
+    // Sort events by their index (stored in data-event-index attribute)
+    events.sort((a, b) => {
+        const indexA = parseInt(a.dataset.eventIndex || '0', 10);
+        const indexB = parseInt(b.dataset.eventIndex || '0', 10);
+        return indexA - indexB;
+    });
+    
+    // Clear the container and re-append in sorted order
+    unsortedEventsContainer.innerHTML = "";
+    events.forEach(event => unsortedEventsContainer.appendChild(event));
+}
 
 // Reusable module for random event selection with deduplication
 const EventPool = {
@@ -398,6 +429,9 @@ function loadEvents() {
                 unsortedEventsContainer.innerHTML = ""; // Clear existing events
                 randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
+                // Sort unsorted events by their index
+                sortUnsortedEventsByIndex();
+
                 // Set total possible score (first event doesn't count)
                 totalPossibleScore = EVENTS_PER_GAME - 1;
                 updateScoreDisplay();
@@ -421,7 +455,13 @@ function randomizeEvents() {
     const randomEvents = shuffleArray(eventsData).slice(0, EVENTS_PER_GAME);
     const unsortedEventsContainer = document.getElementById("unsorted-events");
     unsortedEventsContainer.innerHTML = ""; // Clear existing events
+    
+    // Reset the index counter before creating new events
+    nextEventIndex = 1;
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+
+    // Sort unsorted events by their index
+    sortUnsortedEventsByIndex();
 
     // Clear any selected event and placement slots
     deselectEvent();
@@ -447,9 +487,16 @@ function shuffleUnsortedEvents() {
     // Shuffle the events array
     const shuffledEvents = shuffleArray(events);
     
-    // Clear the container and re-append in new order
-    unsortedEventsContainer.innerHTML = "";
-    shuffledEvents.forEach(event => unsortedEventsContainer.appendChild(event));
+    // Reassign index numbers based on shuffled order
+    shuffledEvents.forEach((event, idx) => {
+        event.dataset.eventIndex = idx + 1;
+    });
+    
+    // Update nextEventIndex to continue from the highest index
+    nextEventIndex = shuffledEvents.length + 1;
+    
+    // Sort events by their new index (which will maintain the shuffled order)
+    sortUnsortedEventsByIndex();
     
     // Clear any selected event and placement slots
     deselectEvent();
@@ -468,6 +515,12 @@ function resetEvents() {
     orderedEvents.forEach(eventElement => {
         // Remove correct/incorrect classes
         eventElement.classList.remove('correct', 'incorrect', 'placed');
+        
+        // Restore index if it doesn't have one (it should already have one from when it was created)
+        if (!eventElement.dataset.eventIndex) {
+            eventElement.dataset.eventIndex = nextEventIndex;
+            nextEventIndex++;
+        }
         
         // Handle remove button visibility based on edit mode
         let removeButton = eventElement.querySelector(".remove-button");
@@ -503,8 +556,8 @@ function resetEvents() {
     // Clear any selected event and placement slots
     deselectEvent();
     
-    // Shuffle the unsorted events
-    shuffleUnsortedEvents();
+    // Sort the unsorted events by index to maintain order
+    sortUnsortedEventsByIndex();
 }
 
 // Add event listener to Reset button
@@ -522,6 +575,8 @@ function clearAllEvents() {
 
     // Clear selection and placement slots
     deselectEvent();
+    
+    // Do NOT reset the index counter - sequence keeps going up unless a new game starts
 
     // Reset player score to 0
     playerScore = 0;
@@ -549,9 +604,15 @@ function startNewGame() {
     // Reset player score
     playerScore = 0;
     
+    // Reset the index counter
+    nextEventIndex = 1;
+    
     // Load new random events (same as initial page load)
     const randomEvents = shuffleArray([...eventsData]).slice(0, EVENTS_PER_GAME);
     randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+    
+    // Sort unsorted events by their index
+    sortUnsortedEventsByIndex();
     
     // Set total possible score (first event doesn't count)
     totalPossibleScore = EVENTS_PER_GAME - 1;
@@ -617,6 +678,9 @@ function startNewGame() {
         const unsortedEventsContainer = document.getElementById("unsorted-events");
         newEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
         
+        // Sort unsorted events by their index
+        sortUnsortedEventsByIndex();
+        
         // Update totalPossibleScore (first event doesn't count)
         const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
         totalPossibleScore = Math.max(0, totalEvents - 1);
@@ -629,6 +693,13 @@ function createEventElement(event, container) {
     let eventElement = document.createElement("div");
     eventElement.classList.add("event", "no-select");
     eventElement.dataset.date = event.date;
+    
+    // Assign sequential index number only when adding to unsorted events
+    // (not when loading from ordered timeline in shareable links)
+    if (container.id === "unsorted-events") {
+        eventElement.dataset.eventIndex = nextEventIndex;
+        nextEventIndex++;
+    }
     
     // Make event keyboard accessible
     eventElement.setAttribute("tabindex", "0");
@@ -718,6 +789,9 @@ function addEvent() {
     let newEvent = { name: eventName, date: eventDate };
     eventsData.push(newEvent);
     createEventElement(newEvent, document.getElementById("unsorted-events"));
+
+    // Sort unsorted events by their index
+    sortUnsortedEventsByIndex();
 
     // Update totalPossibleScore based on the unsorted events (first event doesn't count)
     const totalEvents = document.getElementById("unsorted-events").children.length + document.getElementById("ordered-timeline").children.length;
