@@ -12,6 +12,11 @@ Big-picture architecture and data flow
 - Data: `events.json` is a flat array of {name, date} objects. The UI maintains `eventsData` (in-memory) and DOM elements with `data-date` attributes.
 - Share links: The app encodes the combined ordered + unsorted events into the `events` URL parameter using LZString compressed encodedURIComponent strings. Special token `EMPTY` indicates intentionally empty event sets.
 
+Recent UI/CSS notes
+- The `show date` control is implemented as `.show-date-toggle` and is rendered inside the main `.container` above the timeline. CSS positions this control to the right using rules targeting `.container .show-date-toggle` (and `.top-controls .show-date-toggle` if moved).
+- The checkbox visuals are now implemented with a CSS-drawn monochrome checkbox: the native checkbox is visually hidden (kept accessible), and the box + check are drawn with `label::before`/`label::after`. This guarantees a consistent monochrome appearance across platforms. See `styles.css` for the exact rules (box: `label::before`, check: `input:checked + label::after`).
+- Noto fonts: `Noto Serif`, `Noto Emoji`, `Noto Color Emoji` are self-hosted and used in the font stack. The CSS changes around the checkbox ensure emoji fonts are available for glyph fallbacks but the default control is CSS-drawn for visual consistency.
+
 Important files and examples
 - index.html: sets initial theme inlined in head to prevent flash — keep that if moving scripts.
 - script.js: largest surface area. Key functions to inspect/modify:
@@ -29,6 +34,10 @@ Project-specific conventions and patterns
 - Edit mode gating: The `data-edit-mode` attribute on `body` toggles visibility of `.remove-button` elements; `window.EditMode.updateRemoveButtonsVisibility()` is used by dynamic additions.
 - Shareable link flow: After loading events from URL, the app clears URL params using `clearURLParameters()` to return to data-less state; tests or changes that rely on URL should consider this behavior.
 
+Randomize behavior and duplicates
+- `randomizeEvents()` selects a sample without replacement using `shuffleArray(eventsData).slice(0, 7)` (Fisher–Yates shuffle + slice). That prevents selecting the same array element twice during sampling.
+- This does not deduplicate content: if `eventsData` itself contains duplicate entries (identical `name`+`date`), the randomized result may include visually duplicate events. Consider deduplicating `eventsData` (by `name`+`date`) before randomizing if strict uniqueness by content is required.
+
 Developer workflows and commands
 - No build system or tests are present. To preview locally, serve the folder as static files. Recommended commands:
   - Python 3 simple server: `python -m http.server 8000` then open `http://localhost:8000`.
@@ -45,6 +54,12 @@ Editing and refactor guidance for AI agents
 - Small, local edits: Modify `script.js` in-place, and prefer adding helper functions rather than large rewrites. Example: to add a new scoring tweak, change `checkEventOrder()` only and keep DOM structure unchanged.
 - When changing serialization format (URL), update both encode/decode and search/handling in `loadEventsFromURL()` and `generateShareableLink()`; keep `EMPTY` token semantics.
 - To add unit tests: create a small Node-based test harness that imports functions from `script.js` after converting them to exportable modules, or extract pure functions (formatDate, shuffleArray, encode/decode helpers) into a new `lib.js` that can be imported by tests.
+
+Styling and UI change notes for contributors
+- The `styles.css` file contains several tweaks that are intentionally behavior-sensitive:
+  - The inline theme script in `index.html` must remain to prevent flash-of-theme on load.
+  - `.timeline` uses pseudo-elements to draw corner borders and complex background gradients—avoid replacing these with simple borders unless you intend to change the visual design.
+  - Placement slots and event behaviors rely on DOM order and CSS classes (`.placement-slot`, `.event`, `.placed`, `.correct`, `.incorrect`). Keep those class names stable when changing logic.
 
 What not to change without confirmation
 - Do not remove the inline theme-setting script in `index.html` head — it prevents a flash-of-theme on load.

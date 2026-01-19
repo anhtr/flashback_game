@@ -1,8 +1,22 @@
-// Theme toggle functionality
+/**
+ * THEME TOGGLE FUNCTIONALITY
+ * 
+ * Manages dark/light theme switching for the entire application.
+ * The theme is applied via data-theme attribute on <html> element which triggers
+ * CSS custom property changes defined in styles.css.
+ * 
+ * Theme is persisted in localStorage and applied immediately on page load via
+ * inline script in index.html (prevents flash of wrong theme).
+ * 
+ * Integration points:
+ * - Changes CSS variables defined in :root and [data-theme="dark"] in styles.css
+ * - Persists preference in localStorage with key 'theme'
+ * - Updates button text/emoji and aria labels for accessibility
+ */
 (function() {
     const themeToggle = document.getElementById('theme-toggle');
     
-    // Exit early if theme toggle element doesn't exist
+    // Exit early if theme toggle element doesn't exist (defensive programming)
     if (!themeToggle) {
         console.warn('Theme toggle button not found');
         return;
@@ -35,11 +49,27 @@
     }
 })();
 
-// Debug mode toggle functionality
+/**
+ * DEBUG MODE TOGGLE FUNCTIONALITY
+ * 
+ * Enables display of sequential event index numbers on event cards.
+ * Used during development and testing to track event ordering and help
+ * identify specific events in the timeline.
+ * 
+ * When enabled:
+ * - Shows .event-debug-index elements (normally hidden) on each event card
+ * - Index numbers are assigned sequentially as events are added (see nextEventIndex)
+ * - Persisted in localStorage so debug state survives page reloads
+ * 
+ * Integration points:
+ * - data-debug-mode attribute on body controls CSS visibility rules
+ * - window.DebugMode.updateDebugIndicesVisibility() can be called when events are dynamically added
+ * - Debug indices are created in createEventElement() function
+ */
 (function() {
     const debugToggle = document.getElementById('debug-toggle');
     
-    // Exit early if debug toggle element doesn't exist
+    // Exit early if debug toggle element doesn't exist (defensive programming)
     if (!debugToggle) {
         console.warn('Debug toggle button not found');
         return;
@@ -94,11 +124,32 @@
     window.DebugMode.updateDebugIndicesVisibility = updateDebugIndicesVisibility;
 })();
 
-// Edit mode toggle functionality
+/**
+ * EDIT MODE TOGGLE FUNCTIONALITY
+ * 
+ * Enables advanced game controls for customizing event sets.
+ * When enabled, reveals additional UI controls and event management features.
+ * 
+ * Features unlocked in edit mode:
+ * - Remove buttons on events in the unsorted pile (before they're placed)
+ * - Shuffle, Reset, Randomize, and Clear buttons
+ * - "Add a new event" form at bottom of page
+ * - Manual event addition with custom name and date
+ * 
+ * Design rationale:
+ * - Keeps main UI clean for players by hiding advanced controls
+ * - Allows teachers/creators to build custom event sets
+ * - Persisted in localStorage so edit state survives page reloads
+ * 
+ * Integration points:
+ * - data-edit-mode="on" attribute on body enables CSS rules (.edit-mode-only)
+ * - window.EditMode.updateRemoveButtonsVisibility() called when events are dynamically added
+ * - Remove buttons are only shown on unsorted events, not placed events (immutable once placed)
+ */
 (function() {
     const editModeToggle = document.getElementById('edit-mode-toggle');
     
-    // Exit early if edit mode toggle element doesn't exist
+    // Exit early if edit mode toggle element doesn't exist (defensive programming)
     if (!editModeToggle) {
         console.warn('Edit mode toggle button not found');
         return;
@@ -156,6 +207,38 @@
     window.EditMode.updateRemoveButtonsVisibility = updateRemoveButtonsVisibility;
 })();
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * SHOW DATE TOGGLE - Controls visibility of event dates on placed events
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Allows players to optionally hide/show dates on events they've placed in the
+ *   ordered timeline. This is useful for:
+ *   - Increasing challenge by removing date hints
+ *   - Focusing on relative chronological ordering without absolute dates
+ *   - Accommodating different learning/testing preferences
+ *
+ * Behavior/Features:
+ *   - Checkbox control in UI (show date / hide date)
+ *   - Default state: ON (dates visible) for user-friendly experience
+ *   - Persists user preference in localStorage as 'showDate' ('on' | 'off')
+ *   - Only affects dates in #ordered-timeline (not unsorted events)
+ *   - Updates DOM by adding/removing 'hidden' class on .event-Date elements
+ *   - State synchronized via data-show-date attribute on <body>
+ *
+ * Design Rationale:
+ *   - Default ON ensures new users see dates immediately for context
+ *   - Only affects placed events (ordered timeline) because unsorted events always
+ *     keep dates hidden until placement to preserve game challenge
+ *   - Checkbox positioned in main container for easy access during gameplay
+ *   - CSS-drawn monochrome checkbox for consistent cross-browser appearance
+ *
+ * Integration Points:
+ *   - CSS: data-show-date attribute on body controls .event-Date.hidden styling
+ *   - localStorage: 'showDate' key persists preference across sessions
+ *   - window.ShowDate.updateDateVisibility(): Exposed globally for dynamic event additions
+ *   - Related: placeEventAtPosition() reveals dates when placing events
+ */
 // Show date toggle functionality
 (function() {
     const showDateToggle = document.getElementById('show-date-toggle');
@@ -205,6 +288,40 @@
     window.ShowDate.updateDateVisibility = updateDateVisibility;
 })();
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * URL ENCODING/DECODING - Shareable link generation and parsing
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Enables users to share custom event sets via URL. This allows:
+ *   - Teachers creating custom quiz scenarios for students
+ *   - Friends challenging each other with specific event combinations
+ *   - Saving and restoring game state without server-side storage
+ *
+ * Compression Strategy:
+ *   Uses LZString library (lz-string.min.js) to compress JSON event arrays:
+ *   - Raw JSON: [{name:"...", date:"YYYY-MM-DD"}, ...]
+ *   - Compressed: Base64-like encoded string safe for URLs
+ *   - Typical compression: 60-80% reduction in URL length
+ *   - Special token: 'EMPTY' represents intentionally empty event list
+ *
+ * URL Parameter Format:
+ *   ?events=<LZString compressed JSON>
+ *   - Single query parameter 'events' contains all state
+ *   - Includes both ordered timeline events AND unsorted events
+ *   - URL is cleared after load (clearURLParameters) to return to data-less state
+ *
+ * Data Flow:
+ *   Encoding: DOM events → JS array → JSON → LZString → URL param
+ *   Decoding: URL param → LZString → JSON → JS array → DOM events
+ *
+ * Integration Points:
+ *   - generateShareableLink(): Collects current game state into URL
+ *   - loadEventsFromURL(): Parses URL on page load, populates game
+ *   - Copy link button: Triggers encoding and clipboard copy
+ *   - Date format: YYYY-MM-DD strings (ISO-like) preserved through encoding
+ *   - Error handling: Invalid URLs fall back to randomized events with toast notification
+ */
 // Function to encode events to URL format using lz-string compression
 function encodeEventsToURL(events) {
     // Check if LZString is available
@@ -359,6 +476,27 @@ function loadEventsFromURL() {
     return false;
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * COPY LINK BUTTON - Generates and copies shareable URL to clipboard
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Single-click action to create a shareable URL containing the current game state.
+ *   Users can share this link to reproduce the exact event combination.
+ *
+ * Behavior:
+ *   1. Collects all events (ordered timeline + unsorted) from DOM
+ *   2. Encodes them into compressed URL via generateShareableLink()
+ *   3. Copies URL to system clipboard using navigator.clipboard API
+ *   4. Shows toast notification confirming copy success/failure
+ *   5. Fallback: If clipboard API unavailable, shows link in toast for manual copy
+ *
+ * Integration Points:
+ *   - Calls: generateShareableLink() → encodeEventsToURL()
+ *   - Depends on: navigator.clipboard.writeText() (modern browsers)
+ *   - Feedback: showToast() for user confirmation
+ *   - URL format: Origin + pathname + ?events=<encoded data>
+ */
 // Copy link button functionality
 (function() {
     const copyLinkBtn = document.getElementById('copy-link-btn');
@@ -393,6 +531,46 @@ function loadEventsFromURL() {
     });
 })();
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * GAME STATE VARIABLES - Core state tracking for game mechanics
+ * ═══════════════════════════════════════════════════════════════════════════
+ * These module-level variables maintain the state of the game across user interactions.
+ *
+ * playerScore (number):
+ *   - Current score earned by player (correct placements only)
+ *   - First event placement doesn't count (no reference point)
+ *   - Incremented only on first placement attempt per event (dataset.initialAnswer)
+ *   - Updated via checkEventOrder() after placeEventAtPosition()
+ *
+ * totalPossibleScore (number):
+ *   - Maximum achievable score for current game
+ *   - Calculated as: (total events - 1) since first placement can't be wrong
+ *   - Updated when events are added/removed/randomized
+ *
+ * selectedEvent (HTMLElement | null):
+ *   - Reference to currently selected event element (has .selected class)
+ *   - Set by selectEvent(), cleared by deselectEvent()
+ *   - Used to determine which event to place when slot is clicked
+ *
+ * eventsData (Array<{name: string, date: string}>):
+ *   - Master dataset loaded from events.json
+ *   - Contains all available historical events for randomization
+ *   - Dates in YYYY-MM-DD format (ISO-like)
+ *   - Used by EventPool and randomizeEvents() to select new events
+ *
+ * nextEventIndex (number):
+ *   - Sequential counter for debug mode event numbering
+ *   - Each created event gets unique index via data-event-index attribute
+ *   - Persists across randomizations (doesn't reset) for continuous tracking
+ *   - Reset only when loading from URL or starting fresh game
+ *
+ * EVENTS_PER_GAME (const number = 8):
+ *   - Default number of events in a new game
+ *
+ * EVENTS_TO_ADD (const number = 7):
+ *   - Number of events added by "Add more events" button
+ */
 let playerScore = 0;
 let totalPossibleScore = 0;
 let selectedEvent = null;
@@ -422,6 +600,48 @@ function sortUnsortedEventsByIndex() {
     events.forEach(event => unsortedEventsContainer.appendChild(event));
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EVENT POOL MODULE - Smart event selection with date deduplication
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Prevents duplicate dates when adding or randomizing events. This ensures:
+ *   - No two events on screen share the same date
+ *   - Randomization replaces old events with truly different ones
+ *   - "Add more events" doesn't introduce date conflicts
+ *
+ * Deduplication Strategy:
+ *   1. Scan DOM for all existing event dates (ordered + unsorted)
+ *   2. Build Set of used dates for O(1) lookup
+ *   3. Filter eventsData to exclude any events with used dates
+ *   4. Select from remaining pool using Fisher-Yates shuffle
+ *
+ * IMPORTANT: Content Duplicates vs Date Duplicates
+ *   - This module ONLY prevents date duplicates (e.g., two events on 1969-07-20)
+ *   - Does NOT deduplicate event NAME/CONTENT (if events.json has duplicate entries,
+ *     they can both appear IF they have different dates)
+ *   - For strict content deduplication, preprocess eventsData before using EventPool
+ *
+ * API Methods:
+ *   getUsedDates() → Set<string>
+ *     - Scans #ordered-timeline and #unsorted-events for all data-date attributes
+ *     - Returns Set of YYYY-MM-DD strings currently on screen
+ *
+ *   getAvailableEvents(allEvents, usedDates) → Array<Event>
+ *     - Filters allEvents to exclude any with dates in usedDates Set
+ *     - Returns array of events safe to add without date conflicts
+ *
+ *   getRandomEvents(count) → Array<Event>
+ *     - Main entry point: gets N random events from available pool
+ *     - Internally calls getUsedDates() + getAvailableEvents() + shuffleArray()
+ *     - Returns up to 'count' events (may return fewer if pool exhausted)
+ *     - Returns empty array [] if no events available
+ *
+ * Integration Points:
+ *   - Used by: randomizeEvents(), addMoreEvents()
+ *   - Depends on: eventsData (master dataset), shuffleArray() (Fisher-Yates)
+ *   - DOM queries: #ordered-timeline, #unsorted-events
+ */
 // Reusable module for random event selection with deduplication
 const EventPool = {
     // Get dates that are already in use on the page
@@ -469,6 +689,34 @@ const EventPool = {
     }
 };
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LOAD EVENTS - Initial game setup and data loading
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Main initialization function that runs on page load. Handles two scenarios:
+ *   1. Shared link: Decode events from URL parameter
+ *   2. Fresh start: Load random events from events.json
+ *
+ * Load Sequence:
+ *   1. Check URL for ?events= parameter via loadEventsFromURL()
+ *      - If found and valid: Populate DOM with decoded events, clear URL
+ *      - If found but invalid: Show error toast, continue to step 2
+ *      - If not found: Continue to step 2
+ *   2. Fetch events.json and populate eventsData array
+ *   3. If no URL events were loaded: Select EVENTS_PER_GAME random events,
+ *      create DOM elements, set totalPossibleScore
+ *
+ * IMPORTANT: Dual Data Management
+ *   - eventsData is ALWAYS loaded from events.json (even with URL events)
+ *   - This ensures randomize/add buttons have full dataset available
+ *   - URL events populate DOM directly, not eventsData
+ *
+ * Integration Points:
+ *   - Calls: loadEventsFromURL(), createEventElement(), shuffleArray()
+ *   - Updates: eventsData, totalPossibleScore, DOM (#unsorted-events)
+ *   - Triggered: On page load (see bottom of script.js)
+ */
 // Function to create and add events dynamically
 function loadEvents() {
     // First check if there are events in the URL
@@ -499,6 +747,28 @@ function loadEvents() {
         .catch(error => console.error("Error loading events:", error));
 }
 
+/**
+ * Fisher-Yates Shuffle Algorithm - Unbiased array randomization
+ * 
+ * Purpose:
+ *   Creates a shuffled copy of an array with uniform random distribution.
+ *   Each permutation has equal probability of occurring.
+ *
+ * Algorithm (Fisher-Yates):
+ *   - Iterate backwards from last element to first
+ *   - For each position i, pick random index j from [0, i]
+ *   - Swap elements at i and j
+ *   - This ensures each element has equal chance of ending up at any position
+ *
+ * Implementation Notes:
+ *   - Creates shallow copy via spread operator to avoid mutating original
+ *   - Uses Math.random() * (i + 1) to get uniform distribution across valid indices
+ *   - O(n) time complexity, O(n) space (for copy)
+ *
+ * Integration Points:
+ *   - Used by: loadEvents(), randomizeEvents(), shuffleUnsortedEvents(), EventPool.getRandomEvents()
+ *   - Returns: New array (does not modify input)
+ */
 // Function to shuffle the array (Fisher-Yates algorithm)
 function shuffleArray(array) {
     const shuffled = [...array]; // Create a copy to avoid mutating the original
@@ -509,6 +779,35 @@ function shuffleArray(array) {
     return shuffled;
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * RANDOMIZE EVENTS - Replace unsorted events with new random selection
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Replaces all events in unsorted area with fresh random events from eventsData.
+ *   Maintains same event count (doesn't add/remove events, just swaps them).
+ *   Useful for getting unstuck or exploring different event combinations.
+ *
+ * Behavior:
+ *   1. Saves current unsorted events as fallback (in case pool exhausted)
+ *   2. Clears unsorted events container DOM
+ *   3. Gets N random events via EventPool.getRandomEvents() (where N = current count)
+ *   4. If pool has events: creates new DOM elements and sorts by index
+ *   5. If pool exhausted: restores original events and shows error toast
+ *   6. Maintains game state: preserves score, updates totalPossibleScore, deselects active event
+ *
+ * Important Implementation Details:
+ *   - Uses EventPool for date deduplication (no duplicate dates with ordered timeline)
+ *   - Does NOT reset nextEventIndex (debug numbering continues sequentially)
+ *   - Preserves ordered timeline (only randomizes unsorted area)
+ *   - Empty unsorted area: Shows warning toast and exits early
+ *
+ * Integration Points:
+ *   - Triggered by: #randomize-btn click (Edit Mode UI)
+ *   - Depends on: EventPool.getRandomEvents(), eventsData, createEventElement()
+ *   - Updates: DOM (#unsorted-events), totalPossibleScore
+ *   - Calls: sortUnsortedEventsByIndex(), deselectEvent(), updateScoreDisplay()
+ */
 // Function to randomize events on button click
 function randomizeEvents() {
     const unsortedEventsContainer = document.getElementById("unsorted-events");
@@ -571,6 +870,33 @@ function randomizeEvents() {
 // Add event listener to Randomize button
 document.getElementById("randomize-btn").addEventListener("click", randomizeEvents);
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * SHUFFLE UNSORTED EVENTS - Randomize visual order without changing events
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Randomizes the visual order of unsorted events WITHOUT changing the actual events.
+ *   Unlike randomizeEvents(), this keeps same events but rearranges their positions.
+ *
+ * Behavior:
+ *   1. Collects current event indices from data-event-index attributes
+ *   2. Shuffles the index array using Fisher-Yates algorithm
+ *   3. Reassigns shuffled indices to existing event elements
+ *   4. Updates .event-debug-index display to match new indices
+ *   5. Sorts DOM via sortUnsortedEventsByIndex() to reorder visually
+ *   6. Clears selection and placement slots
+ *
+ * Use Case:
+ *   - Break habitual ordering patterns when playing repeatedly
+ *   - Avoid positional bias (e.g., always starting with first event)
+ *   - Adds variety without changing event content
+ *
+ * Integration Points:
+ *   - Triggered by: #shuffle-btn click (Edit Mode UI)
+ *   - Depends on: shuffleArray(), sortUnsortedEventsByIndex()
+ *   - Updates: data-event-index attributes, .event-debug-index DOM text
+ *   - Calls: deselectEvent()
+ */
 // Function to shuffle the position of unsorted events
 function shuffleUnsortedEvents() {
     const unsortedEventsContainer = document.getElementById("unsorted-events");
@@ -607,6 +933,36 @@ function shuffleUnsortedEvents() {
 // Add event listener to Shuffle button
 document.getElementById("shuffle-btn").addEventListener("click", shuffleUnsortedEvents);
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * RESET EVENTS - Return all ordered events to unsorted area
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Undoes all player placements by moving events from ordered timeline back to
+ *   unsorted area. Allows replaying same event set without starting new game.
+ *
+ * Behavior:
+ *   1. Collects all events from #ordered-timeline
+ *   2. Removes visual feedback classes (.correct, .incorrect, .placed)
+ *   3. Restores hidden state on dates (adds .hidden to .event-Date)
+ *   4. Ensures each event has data-event-index (assigns if missing)
+ *   5. Updates remove button visibility based on current edit mode
+ *   6. Clears dataset.initialAnswer (allows scoring on second attempt)
+ *   7. Moves all events to #unsorted-events container
+ *   8. Resets playerScore to 0
+ *   9. Recalculates totalPossibleScore (events - 1)
+ *   10. Sorts unsorted events by index for consistent display
+ *
+ * Preserves:
+ *   - Event content and dates (doesn't change events)
+ *   - nextEventIndex counter (debug numbering continues)
+ *   - eventsData array (master dataset unchanged)
+ *
+ * Integration Points:
+ *   - Triggered by: #reset-btn click (Edit Mode UI)
+ *   - Updates: DOM (#ordered-timeline, #unsorted-events), playerScore, totalPossibleScore
+ *   - Calls: deselectEvent(), sortUnsortedEventsByIndex(), updateScoreDisplay()
+ */
 // Function to reset - move all events from ordered timeline back to unsorted events and shuffle
 function resetEvents() {
     const orderedTimelineContainer = document.getElementById("ordered-timeline");
@@ -665,6 +1021,37 @@ function resetEvents() {
 // Add event listener to Reset button
 document.getElementById("reset-btn").addEventListener("click", resetEvents);
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * CLEAR ALL EVENTS - Remove all unsorted events (ordered timeline untouched)
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Removes all events from unsorted area only (leaves ordered timeline intact).
+ *   Used for creating custom scenarios from scratch in Edit Mode.
+ *
+ * Behavior:
+ *   1. Clears #unsorted-events container (innerHTML = "")
+ *   2. Deselects any selected event and hides placement slots
+ *   3. Does NOT reset nextEventIndex (debug numbering continues)
+ *   4. Recalculates totalPossibleScore based on remaining events
+ *   5. Updates score display
+ *
+ * Preserves:
+ *   - Ordered timeline events (user's placed events remain)
+ *   - Player score (already earned points stay)
+ *   - eventsData (master dataset unchanged)
+ *   - nextEventIndex counter
+ *
+ * Use Cases:
+ *   - Remove unwanted events without affecting placed ones
+ *   - Prepare for custom event addition via "Add more" or manual entry
+ *   - Simplify game to only events already placed
+ *
+ * Integration Points:
+ *   - Triggered by: #clear-all-btn click (Edit Mode UI)
+ *   - Updates: DOM (#unsorted-events), totalPossibleScore
+ *   - Calls: deselectEvent(), updateScoreDisplay()
+ */
 // Function to clear unsorted events only
 function clearAllEvents() {
     // Clear unsorted events only (not ordered timeline)
@@ -685,6 +1072,39 @@ function clearAllEvents() {
 // Add event listener to Clear button
 document.getElementById("clear-all-btn").addEventListener("click", clearAllEvents);
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * START NEW GAME - Complete game reset with fresh random events
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Full game reset - clears everything (both timelines) and loads fresh random events.
+ *   Returns game to initial state as if page was just loaded.
+ *
+ * Behavior:
+ *   1. Clears both #unsorted-events and #ordered-timeline containers
+ *   2. Deselects any selected event and hides placement slots
+ *   3. Resets playerScore to 0
+ *   4. Resets nextEventIndex to 1 (restarts debug numbering)
+ *   5. Selects EVENTS_PER_GAME random events from eventsData via Fisher-Yates
+ *   6. Creates DOM elements for new events in unsorted area
+ *   7. Sorts events by index
+ *   8. Sets totalPossibleScore = EVENTS_PER_GAME - 1
+ *   9. Updates score display
+ *
+ * vs. resetEvents():
+ *   - startNewGame(): Clears EVERYTHING, loads NEW events, resets index counter
+ *   - resetEvents(): Moves ordered events back, keeps SAME events, preserves index counter
+ *
+ * Confirmation Dialog:
+ *   Triggered by #new-game-btn via IIFE below this function.
+ *   Shows #new-game-dialog overlay to confirm (prevents accidental resets).
+ *
+ * Integration Points:
+ *   - Triggered by: Dialog Yes button after #new-game-btn click
+ *   - Depends on: eventsData (master dataset), shuffleArray(), createEventElement()
+ *   - Updates: DOM (#unsorted-events, #ordered-timeline), all game state variables
+ *   - Calls: deselectEvent(), sortUnsortedEventsByIndex(), updateScoreDisplay()
+ */
 // Function to start a new game - clears everything and loads random events
 function startNewGame() {
     // Clear both timelines
@@ -783,6 +1203,49 @@ function startNewGame() {
     });
 })();
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * CREATE EVENT ELEMENT - Build event DOM structure with all child elements
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Factory function that creates complete event DOM element with all child components.
+ *   Central place for event structure definition - used by all event-creating code paths.
+ *
+ * DOM Structure Created:
+ *   <div class="event no-select" data-date="YYYY-MM-DD" data-event-index="N" 
+ *        tabindex="0" role="button" aria-label="Event: ..."> 
+ *     <span class="event-text">Event name</span>
+ *     <button class="remove-button no-select">Remove</button>
+ *     <span class="event-Date hidden">YYYY-MM-DD</span>
+ *     <span class="event-debug-index [hidden]">#N</span>  <!-- Only if in unsorted -->
+ *   </div>
+ *
+ * Parameters:
+ *   event: {name: string, date: string} - Event data object from eventsData or URL
+ *   container: HTMLElement - Parent container (#unsorted-events or #ordered-timeline)
+ *
+ * Index Assignment:
+ *   - Only assigns data-event-index if container is #unsorted-events
+ *   - Ordered timeline events don't get indices (they're "played" events)
+ *   - Uses global nextEventIndex counter, increments after assignment
+ *
+ * Visibility Rules:
+ *   - .event-Date: Always starts hidden (revealed on placement)
+ *   - .remove-button: Hidden if data-edit-mode !== 'on'
+ *   - .event-debug-index: Hidden if data-debug-mode !== 'on', only exists if indexed
+ *
+ * Accessibility:
+ *   - tabindex="0": Makes event keyboard-focusable
+ *   - role="button": Announces as interactive button to screen readers
+ *   - aria-label: Provides descriptive label for assistive tech
+ *
+ * Integration Points:
+ *   - Called by: loadEvents(), loadEventsFromURL(), randomizeEvents(), 
+ *                addMoreEvents(), addEvent(), createEventElement() recursion
+ *   - Depends on: nextEventIndex, data-edit-mode, data-debug-mode attributes
+ *   - Attaches: addClickListeners(), addKeyboardListeners() for interactivity
+ *   - Appends to: Provided container element
+ */
 // Function to create an event element
 function createEventElement(event, container) {
     let eventElement = document.createElement("div");
@@ -852,6 +1315,37 @@ function createEventElement(event, container) {
     addKeyboardListeners(eventElement);
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * REMOVE EVENT - Delete event from unsorted area (Edit Mode feature)
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Removes an event from the unsorted area via "Remove" button in Edit Mode.
+ *   Prevents removal of placed events (ordered timeline) to preserve game integrity.
+ *
+ * Behavior:
+ *   1. Checks parent container: if #ordered-timeline, shows alert and exits
+ *   2. Removes event element from DOM
+ *   3. Removes event from eventsData array (by name matching)
+ *   4. If removed event was selected, deselects it via deselectEvent()
+ *   5. Recalculates totalPossibleScore (remaining events - 1)
+ *   6. Updates score display
+ *
+ * Protection:
+ *   - Ordered timeline removal blocked with user-facing alert
+ *   - This prevents score manipulation and preserves game history
+ *
+ * Data Synchronization:
+ *   - Removes from BOTH DOM and eventsData array
+ *   - Uses Array.findIndex + splice for eventsData removal
+ *   - Maintains consistency between UI state and data model
+ *
+ * Integration Points:
+ *   - Triggered by: .remove-button click event (see createEventElement)
+ *   - Parameters: eventElement (DOM ref), eventName (for eventsData lookup)
+ *   - Updates: DOM, eventsData, selectedEvent, totalPossibleScore
+ *   - Calls: deselectEvent(), updateScoreDisplay()
+ */
 // Function to remove an event (only from unsorted list)
 function removeEvent(eventElement, eventName) {
     const parentTimeline = eventElement.parentNode.id;
@@ -875,6 +1369,34 @@ function removeEvent(eventElement, eventName) {
     updateScoreDisplay();
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ADD EVENT - Create custom event from manual input (Edit Mode feature)
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Allows users to manually create custom events via text input fields in Edit Mode.
+ *   Useful for creating personalized quizzes, educational scenarios, or testing specific dates.
+ *
+ * Behavior:
+ *   1. Reads values from #event-name (text input) and #event-date (date input)
+ *   2. Validates both fields are non-empty (shows alert if missing)
+ *   3. Creates event object {name, date} and pushes to eventsData
+ *   4. Creates DOM element via createEventElement() in #unsorted-events
+ *   5. Sorts unsorted events by index for consistent ordering
+ *   6. Recalculates totalPossibleScore (total events - 1)
+ *   7. Clears input fields for next entry
+ *
+ * Validation:
+ *   - Basic empty check only (trim whitespace from name)
+ *   - Date input uses native HTML5 date picker for format validation
+ *   - No duplicate checking (user can add duplicate names/dates if desired)
+ *
+ * Integration Points:
+ *   - Triggered by: "Add Event" button in Edit Mode controls
+ *   - Reads from: #event-name input, #event-date input
+ *   - Updates: eventsData, DOM (#unsorted-events), totalPossibleScore
+ *   - Calls: createEventElement(), sortUnsortedEventsByIndex(), updateScoreDisplay()
+ */
 // Add a new event from input
 function addEvent() {
     const eventName = document.getElementById("event-name").value.trim();
@@ -902,6 +1424,38 @@ function addEvent() {
     document.getElementById("event-date").value = "";
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EVENT INTERACTION - Click and keyboard event handlers
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Attaches mouse and keyboard event handlers to event elements for selection.
+ *   Ensures accessibility and prevents event bubbling issues.
+ *
+ * addClickListeners(event):
+ *   - Attaches click handler to event element
+ *   - Only allows selection if event is in #unsorted-events (prevents clicking placed events)
+ *   - stopPropagation() prevents document-level deselect handler from firing
+ *   - Called by: createEventElement()
+ *
+ * addKeyboardListeners(event):
+ *   - Attaches keydown handler for keyboard navigation
+ *   - Enter/Space: Selects event (prevents Space from scrolling page)
+ *   - Escape: Deselects currently selected event
+ *   - Only allows selection if event is in #unsorted-events
+ *   - stopPropagation() prevents bubbling to document handlers
+ *   - Called by: createEventElement()
+ *
+ * Accessibility:
+ *   - Provides keyboard-only interaction path (no mouse required)
+ *   - Works with screen readers via tabindex, role, aria-label set in createEventElement()
+ *   - Escape key provides universal deselect mechanism
+ *
+ * Integration Points:
+ *   - Both call: selectEvent() for unsorted events, deselectEvent() for Escape
+ *   - Event bubbling: stopPropagation() critical for preventing conflicts with
+ *     document-level click handler that deselects when clicking outside
+ */
 // Attach click event listeners
 function addClickListeners(event) {
     event.addEventListener('click', (e) => {
@@ -938,6 +1492,45 @@ function addKeyboardListeners(event) {
     });
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EVENT SELECTION - Manages selected event state and placement slots
+ * ═══════════════════════════════════════════════════════════════════════════
+ * selectEvent(event):
+ *   Purpose: Mark an event as selected and show where it can be placed
+ *
+ *   Behavior:
+ *     1. If clicking same event again: deselect it (toggle behavior)
+ *     2. Clear previous selection (.selected class)
+ *     3. Clear previous placement slots from DOM
+ *     4. Set global selectedEvent reference
+ *     5. Add .selected class to new event (CSS highlights it)
+ *     6. Call showPlacementSlots() to display placement positions
+ *
+ *   State Management:
+ *     - selectedEvent global variable holds reference to active event
+ *     - Only one event can be selected at a time
+ *     - Selection is cleared when event is placed or user clicks outside
+ *
+ * deselectEvent():
+ *   Purpose: Clear current selection and hide placement slots
+ *
+ *   Behavior:
+ *     1. If selectedEvent exists: remove .selected class
+ *     2. Set selectedEvent = null
+ *     3. Call clearPlacementSlots() to remove all .placement-slot elements
+ *
+ *   Called by:
+ *     - selectEvent() (when toggling or switching events)
+ *     - placeEventAtPosition() (after placing event)
+ *     - Event handlers (Escape key, click outside, button actions)
+ *     - Game actions (randomize, reset, shuffle, remove, etc.)
+ *
+ * Integration Points:
+ *   - Updates: selectedEvent global, .selected class, DOM (placement slots)
+ *   - Calls: showPlacementSlots(), clearPlacementSlots()
+ *   - CSS: .selected class triggers visual highlight via styles.css
+ */
 // Function to select an event and show placement slots
 function selectEvent(event) {
     // If clicking the same event that's already selected, deselect it
@@ -971,6 +1564,59 @@ function deselectEvent() {
     clearPlacementSlots();
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PLACEMENT SLOTS - Interactive drop targets for ordering events
+ * ═══════════════════════════════════════════════════════════════════════════
+ * showPlacementSlots():
+ *   Purpose: Display clickable slots showing where selected event can be placed
+ *
+ *   Behavior:
+ *     1. Gets all existing events from #ordered-timeline
+ *     2. Inserts slot at position 0 (before first event)
+ *     3. Loops through existing events, inserting slot after each one
+ *     4. Result: N+1 slots for N events (can place before, between, or after)
+ *
+ *   Visual: Each slot is a horizontal line with circle in center (CSS-styled)
+ *
+ * createPlacementSlot(position):
+ *   Purpose: Factory function to create individual placement slot element
+ *
+ *   DOM Structure:
+ *     <div class="placement-slot" data-position="N" tabindex="0" role="button">
+ *       <div class="placement-slot-line"></div>  <!-- Gradient horizontal line -->
+ *       <div class="placement-slot-circle"></div>  <!-- Center circle -->
+ *       <span class="placement-slot-text">Click to place here</span>  <!-- Only on first slot if timeline empty -->
+ *     </div>
+ *
+ *   Parameters:
+ *     position (number): Index where event will be inserted (0-based)
+ *
+ *   Special Behavior:
+ *     - First slot (position 0) shows "Click to place here" text IF timeline is empty
+ *     - Text disappears once first event is placed (no longer needed)
+ *
+ *   Interaction:
+ *     - Click: calls placeEventAtPosition(position)
+ *     - Enter/Space: same as click (keyboard accessibility)
+ *     - stopPropagation() prevents document deselect handler
+ *
+ *   Accessibility:
+ *     - tabindex="0" makes slots keyboard-focusable
+ *     - role="button" announces as clickable to screen readers
+ *     - aria-label describes position in human-readable format
+ *
+ * clearPlacementSlots():
+ *   Purpose: Remove all placement slots from DOM
+ *   Behavior: Queries all .placement-slot elements and removes them
+ *   Called by: deselectEvent(), selectEvent() (when switching events)
+ *
+ * Integration Points:
+ *   - showPlacementSlots() called by: selectEvent()
+ *   - createPlacementSlot() called by: showPlacementSlots()
+ *   - clearPlacementSlots() called by: deselectEvent()
+ *   - All slots trigger: placeEventAtPosition() on click/keyboard
+ */
 // Function to show placement slots in the ordered timeline
 function showPlacementSlots() {
     const orderedTimeline = document.getElementById("ordered-timeline");
@@ -1037,6 +1683,34 @@ function createPlacementSlot(position) {
     return slot;
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PLACE EVENT - Move selected event to ordered timeline position
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Moves selected event from unsorted area to specified position in ordered timeline.
+ *   Core game mechanic - where player's ordering decisions are executed.
+ *
+ * Behavior:
+ *   1. Early exit if no selectedEvent
+ *   2. Gets all existing events from #ordered-timeline (filters out .placement-slot)
+ *   3. Removes selectedEvent from its current parent (unsorted area)
+ *   4. Inserts into #ordered-timeline at specified position:
+ *      - If position >= events.length: append to end
+ *      - Otherwise: insert before event at that index
+ *   5. Updates event styling:
+ *      - Removes .selected, adds .placed
+ *      - Hides remove button (can't remove placed events)
+ *      - Reveals .event-Date by removing .hidden class
+ *   6. Calls checkEventOrder(selectedEvent) to score the placement
+ *   7. Calls deselectEvent() to clear selection and slots
+ *
+ * Integration Points:
+ *   - Triggered by: Placement slot click/keyboard events
+ *   - Parameters: position (0-based index in timeline)
+ *   - Updates: DOM (moves element), selectedEvent state, event classes
+ *   - Calls: checkEventOrder() for scoring, deselectEvent() for cleanup
+ */
 // Function to place the selected event at a specific position
 function placeEventAtPosition(position) {
     if (!selectedEvent) return;
@@ -1091,6 +1765,49 @@ function formatDate(dateString) {
     });
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * CHECK EVENT ORDER - Scoring logic for event placement correctness
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Purpose:
+ *   Determines if event was placed in correct chronological position and awards score.
+ *   Auto-corrects incorrect placements by moving event to proper position.
+ *
+ * Algorithm:
+ *   1. Format and display event date (via formatDate())
+ *   2. Apply show-date visibility setting (respects data-show-date attribute)
+ *   3. Get all events in timeline and convert dates to timestamps
+ *   4. Calculate correct index: count how many events have earlier dates
+ *   5. Get actual current index in timeline
+ *   6. Compare indices:
+ *      - If match: Correct placement → add .correct class, award point (unless first event)
+ *      - If mismatch: Incorrect → add .incorrect class, move to correct position
+ *   7. Update score display
+ *
+ * Scoring Rules:
+ *   - First event placement: NEVER scores points (no reference to be correct/incorrect against)
+ *   - Subsequent placements: 1 point for correct position, 0 for incorrect
+ *   - Only first attempt counts: dataset.initialAnswer prevents re-scoring same event
+ *   - Score is tracked in dataset.initialAnswer ('correct' | 'incorrect')
+ *
+ * Auto-Correction:
+ *   - Incorrect placements are automatically moved to correct chronological position
+ *   - Uses insertBefore() to place event where it should be in timeline
+ *   - This helps players see the correct ordering after each attempt
+ *
+ * Date Handling:
+ *   - Dates stored as YYYY-MM-DD strings in data-date attribute
+ *   - Converted to timestamps via new Date().getTime() for comparison
+ *   - Displayed using locale-specific formatting via formatDate()
+ *   - Show/hide controlled by data-show-date body attribute
+ *
+ * Integration Points:
+ *   - Called by: placeEventAtPosition() after event is moved to timeline
+ *   - Parameters: placedEvent (HTMLElement just placed)
+ *   - Updates: playerScore, .correct/.incorrect classes, dataset.initialAnswer
+ *   - Calls: formatDate(), updateScoreDisplay()
+ *   - Reads: data-date attributes, data-show-date body attribute
+ */
 // Check if event is in the correct order
 function checkEventOrder(placedEvent) {
     let dateElement = placedEvent.querySelector('.event-Date');
