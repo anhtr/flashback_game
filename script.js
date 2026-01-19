@@ -543,24 +543,24 @@ function shuffleUnsortedEvents() {
         return; // Nothing to shuffle
     }
     
-    // Shuffle the events array
-    const shuffledEvents = shuffleArray(events);
+    // Get current indices from events
+    const currentIndices = events.map(event => parseInt(event.dataset.eventIndex, 10));
     
-    // Reassign index numbers based on shuffled order
-    shuffledEvents.forEach((event, idx) => {
-        event.dataset.eventIndex = idx + 1;
+    // Shuffle the indices array
+    const shuffledIndices = shuffleArray(currentIndices);
+    
+    // Reassign the shuffled indices to the events
+    events.forEach((event, idx) => {
+        event.dataset.eventIndex = shuffledIndices[idx];
         
         // Update the debug index display if it exists
         const debugIndex = event.querySelector('.event-debug-index');
         if (debugIndex) {
-            debugIndex.textContent = `#${idx + 1}`;
+            debugIndex.textContent = `#${shuffledIndices[idx]}`;
         }
     });
     
-    // Update nextEventIndex to continue from the highest index
-    nextEventIndex = shuffledEvents.length + 1;
-    
-    // Sort events by their new index (which will maintain the shuffled order)
+    // Sort events by their new index (which will reorder them based on shuffled indices)
     sortUnsortedEventsByIndex();
     
     // Clear any selected event and placement slots
