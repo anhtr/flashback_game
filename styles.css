@@ -401,16 +401,16 @@ body:not([data-edit-mode="on"]) .edit-mode-only {
     z-index: 1; /* Float above event text */
 }
 
-/* Remove button styling - positioned absolutely at top left, floating above text */
+/* Remove button styling - positioned absolutely at bottom right, floating above text */
 .event .remove-button {
     position: absolute;
-    top: 6px;
-    left: 6px;
+    bottom: 6px;
+    right: 6px;
     font-size: 12px;
     padding: 4px 8px;
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: 1px solid var(--button-border);
+    background-color: #d32f2f; /* Red background */
+    color: #ffffff; /* White text for contrast */
+    border: 1px solid #b71c1c; /* Darker red border */
     border-radius: 4px;
     cursor: pointer;
     z-index: 2; /* Float above event text and other elements */
