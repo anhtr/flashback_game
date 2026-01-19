@@ -549,6 +549,12 @@ function shuffleUnsortedEvents() {
     // Reassign index numbers based on shuffled order
     shuffledEvents.forEach((event, idx) => {
         event.dataset.eventIndex = idx + 1;
+        
+        // Update the debug index display if it exists
+        const debugIndex = event.querySelector('.event-debug-index');
+        if (debugIndex) {
+            debugIndex.textContent = `#${idx + 1}`;
+        }
     });
     
     // Update nextEventIndex to continue from the highest index
