@@ -523,10 +523,18 @@ function randomizeEvents() {
     }
     
     // Save current events before clearing (in case we need to restore them)
-    const currentEvents = Array.from(unsortedEventsContainer.children).map(eventElement => ({
-        name: eventElement.querySelector('.event-text').textContent,
-        date: eventElement.dataset.date
-    }));
+    const currentEvents = Array.from(unsortedEventsContainer.children)
+        .map(eventElement => {
+            const eventText = eventElement.querySelector('.event-text');
+            if (!eventText || !eventElement.dataset.date) {
+                return null; // Skip malformed events
+            }
+            return {
+                name: eventText.textContent,
+                date: eventElement.dataset.date
+            };
+        })
+        .filter(event => event !== null); // Remove any null entries
     
     // Clear existing events in unsorted area
     unsortedEventsContainer.innerHTML = "";
