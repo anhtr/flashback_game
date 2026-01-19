@@ -801,20 +801,13 @@ function createEventElement(event, container) {
     eventElement.setAttribute("role", "button");
     eventElement.setAttribute("aria-label", `Event: ${event.name}`);
 
-    // Flex container to align text, remove button, and date
-    let eventContent = document.createElement("div");
-    eventContent.classList.add("event-content");
-    eventContent.style.display = "flex";
-    eventContent.style.justifyContent = "space-between";
-    eventContent.style.alignItems = "center";
-    eventContent.style.width = "100%";
-
     // Event text
     let eventText = document.createElement("span");
     eventText.classList.add("event-text");
     eventText.textContent = event.name;
+    eventElement.appendChild(eventText);
 
-    // Remove button
+    // Remove button - positioned absolutely at top left
     let removeButton = document.createElement("button");
     removeButton.classList.add("remove-button", "no-select");
     removeButton.textContent = "Remove";
@@ -828,12 +821,8 @@ function createEventElement(event, container) {
     if (editMode !== 'on') {
         removeButton.style.display = 'none';
     }
-
-    // Append text and remove button to the main content container
-    eventContent.appendChild(eventText);
-    eventContent.appendChild(removeButton);
     
-    eventElement.appendChild(eventContent);
+    eventElement.appendChild(removeButton);
 
     // Date element - positioned absolutely at bottom right
     let eventDate = document.createElement("span");
