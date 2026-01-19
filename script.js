@@ -511,13 +511,50 @@ function shuffleArray(array) {
 
 // Function to randomize events on button click
 function randomizeEvents() {
-    const randomEvents = shuffleArray(eventsData).slice(0, EVENTS_PER_GAME);
     const unsortedEventsContainer = document.getElementById("unsorted-events");
-    unsortedEventsContainer.innerHTML = ""; // Clear existing events
     
-    // Reset the index counter before creating new events
-    nextEventIndex = 1;
-    randomEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+    // Get the current number of events in unsorted area
+    const currentEventCount = unsortedEventsContainer.children.length;
+    
+    // Handle edge case: if unsorted area is empty, do nothing
+    if (currentEventCount === 0) {
+        showToast('⚠ No events to randomize in the unsorted area.');
+        return;
+    }
+    
+    // Save current events before clearing (in case we need to restore them)
+    const currentEvents = Array.from(unsortedEventsContainer.children)
+        .map(eventElement => {
+            const eventText = eventElement.querySelector('.event-text');
+            if (!eventText || !eventElement.dataset.date) {
+                return null; // Skip malformed events
+            }
+            return {
+                name: eventText.textContent,
+                date: eventElement.dataset.date
+            };
+        })
+        .filter(event => event !== null); // Remove any null entries
+    
+    // Clear existing events in unsorted area
+    unsortedEventsContainer.innerHTML = "";
+    
+    // Get random events using EventPool (handles deduplication)
+    // Note: Do NOT reset nextEventIndex - continue the sequence
+    const newEvents = EventPool.getRandomEvents(currentEventCount);
+    
+    if (newEvents.length === 0) {
+        // Restore original events since we couldn't get new ones
+        currentEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
+        sortUnsortedEventsByIndex();
+        
+        // Show error message using toast
+        showToast('⚠ No more events available in the event pool.');
+        return;
+    }
+    
+    // Add the new events to unsorted events container
+    newEvents.forEach(event => createEventElement(event, unsortedEventsContainer));
 
     // Sort unsorted events by their index
     sortUnsortedEventsByIndex();
@@ -628,31 +665,24 @@ function resetEvents() {
 // Add event listener to Reset button
 document.getElementById("reset-btn").addEventListener("click", resetEvents);
 
-// Function to clear all events
+// Function to clear unsorted events only
 function clearAllEvents() {
-    // Clear unsorted events
+    // Clear unsorted events only (not ordered timeline)
     const unsortedEventsContainer = document.getElementById("unsorted-events");
     unsortedEventsContainer.innerHTML = ""; // Clear all events
-
-    // Clear ordered timeline events
-    const orderedTimelineContainer = document.getElementById("ordered-timeline");
-    orderedTimelineContainer.innerHTML = ""; // Clear all events
 
     // Clear selection and placement slots
     deselectEvent();
     
     // Do NOT reset the index counter - sequence keeps going up unless a new game starts
 
-    // Reset player score to 0
-    playerScore = 0;
-
-    // Update total possible score based on the remaining events in both lists (first event doesn't count)
-    const totalEvents = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
+    // Update total possible score based on the remaining events (first event doesn't count)
+    const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
     totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 }
 
-// Add event listener to Clear All button
+// Add event listener to Clear button
 document.getElementById("clear-all-btn").addEventListener("click", clearAllEvents);
 
 // Function to start a new game - clears everything and loads random events
@@ -771,20 +801,13 @@ function createEventElement(event, container) {
     eventElement.setAttribute("role", "button");
     eventElement.setAttribute("aria-label", `Event: ${event.name}`);
 
-    // Flex container to align text, remove button, and date
-    let eventContent = document.createElement("div");
-    eventContent.classList.add("event-content");
-    eventContent.style.display = "flex";
-    eventContent.style.justifyContent = "space-between";
-    eventContent.style.alignItems = "center";
-    eventContent.style.width = "100%";
-
     // Event text
     let eventText = document.createElement("span");
     eventText.classList.add("event-text");
     eventText.textContent = event.name;
+    eventElement.appendChild(eventText);
 
-    // Remove button
+    // Remove button - positioned absolutely at top left
     let removeButton = document.createElement("button");
     removeButton.classList.add("remove-button", "no-select");
     removeButton.textContent = "Remove";
@@ -798,12 +821,8 @@ function createEventElement(event, container) {
     if (editMode !== 'on') {
         removeButton.style.display = 'none';
     }
-
-    // Append text and remove button to the main content container
-    eventContent.appendChild(eventText);
-    eventContent.appendChild(removeButton);
     
-    eventElement.appendChild(eventContent);
+    eventElement.appendChild(removeButton);
 
     // Date element - positioned absolutely at bottom right
     let eventDate = document.createElement("span");
