@@ -665,31 +665,24 @@ function resetEvents() {
 // Add event listener to Reset button
 document.getElementById("reset-btn").addEventListener("click", resetEvents);
 
-// Function to clear all events
+// Function to clear unsorted events only
 function clearAllEvents() {
-    // Clear unsorted events
+    // Clear unsorted events only (not ordered timeline)
     const unsortedEventsContainer = document.getElementById("unsorted-events");
     unsortedEventsContainer.innerHTML = ""; // Clear all events
-
-    // Clear ordered timeline events
-    const orderedTimelineContainer = document.getElementById("ordered-timeline");
-    orderedTimelineContainer.innerHTML = ""; // Clear all events
 
     // Clear selection and placement slots
     deselectEvent();
     
     // Do NOT reset the index counter - sequence keeps going up unless a new game starts
 
-    // Reset player score to 0
-    playerScore = 0;
-
-    // Update total possible score based on the remaining events in both lists (first event doesn't count)
-    const totalEvents = unsortedEventsContainer.children.length + orderedTimelineContainer.children.length;
+    // Update total possible score based on the remaining events (first event doesn't count)
+    const totalEvents = unsortedEventsContainer.children.length + document.getElementById("ordered-timeline").children.length;
     totalPossibleScore = Math.max(0, totalEvents - 1);
     updateScoreDisplay();
 }
 
-// Add event listener to Clear All button
+// Add event listener to Clear button
 document.getElementById("clear-all-btn").addEventListener("click", clearAllEvents);
 
 // Function to start a new game - clears everything and loads random events
