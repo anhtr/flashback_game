@@ -4,6 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flashback Game</title>
+    
+    <!-- 
+        ═══════════════════════════════════════════════════════════════════════
+        INLINE THEME SCRIPT - Prevents Flash of Unstyled Content (FOUC)
+        ═══════════════════════════════════════════════════════════════════════
+        This script MUST remain inline and execute before page render to prevent
+        a visible flash when the user's saved theme differs from the default.
+        
+        Execution Flow:
+        1. Reads 'theme' from localStorage (set by theme-toggle button in script.js)
+        2. Defaults to 'dark' if no saved preference exists
+        3. Sets data-theme attribute on <html> element immediately
+        4. CSS custom properties in styles.css respond to [data-theme="dark"]
+        
+        Why inline?
+        - External scripts load asynchronously after DOM parsing
+        - CSS would apply default theme first, then switch (visible flash)
+        - Inline scripts block parsing but execute immediately (no flash)
+        
+        DO NOT MOVE to external script.js - will break flash prevention.
+    -->
     <script>
         // Apply theme immediately to prevent flash
         (function() {
@@ -12,33 +33,132 @@
             document.documentElement.setAttribute('data-theme', theme);
         })();
     </script>
+    
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- 
+        LZString Compression Library - Required for shareable link encoding
+        Loaded before script.js because URL encoding/decoding functions depend on it.
+        Used by: encodeEventsToURL(), decodeEventsFromURL() in script.js
+    -->
     <script src="lz-string.min.js"></script>
 </head>
 <body>
+    
+    <!-- 
+        ═══════════════════════════════════════════════════════════════════════
+        TOP CONTROLS - Global utility buttons (shareable link, debug, theme)
+        ═══════════════════════════════════════════════════════════════════════
+        Positioned at top-right of page (via CSS absolute positioning).
+        These controls affect global app state, not game state.
+        
+        Buttons:
+        - Shareable link: Encodes current game state into URL, copies to clipboard
+        - Debug mode: Shows event index numbers for development/testing
+        - Theme toggle: Switches between dark/light mode
+        
+        All buttons include:
+        - .btn-emoji span: Emoji icon (visible on all screen sizes)
+        - .btn-text span: Text label (hidden on small screens via CSS)
+        - aria-label: Screen reader description
+        - title: Hover tooltip
+    -->
     <div class="top-controls">
         <button class="copy-link-btn" id="copy-link-btn" aria-label="Copy shareable link" title="Shareable link"><span class="btn-emoji">🔗</span><span class="btn-text"> Shareable link</span></button>
         <button class="debug-toggle" id="debug-toggle" aria-label="Debug mode is off" title="Debug mode: OFF"><span class="btn-emoji">🪲</span><span class="btn-text"> Debug mode: OFF</span></button>
         <button class="theme-toggle" id="theme-toggle" aria-label="Dark mode is on" title="Dark mode: ON"><span class="btn-emoji">🌙</span><span class="btn-text"> Dark mode: ON</span></button>
     </div>
+    
+    <!-- 
+        ═══════════════════════════════════════════════════════════════════════
+        HEADER AND INSTRUCTIONS
+        ═══════════════════════════════════════════════════════════════════════
+    -->
     <h1>↞ <i>flashback</i> ↞</h1>
     <p class="instruction"><i>Click on an event in the unsorted pile, <br>then click where you want to place it in the timeline.</i></p>
     
+    <!-- 
+        ═══════════════════════════════════════════════════════════════════════
+        MAIN GAME CONTAINER - Core gameplay area
+        ═══════════════════════════════════════════════════════════════════════
+        Contains the two primary game areas:
+        1. Ordered timeline: Where players place events in chronological order
+        2. Unsorted events: Pool of events waiting to be ordered
+        
+        Structure:
+        - Score display (#result) - Updated by updateScoreDisplay() in script.js
+        - Show date toggle - Controls visibility of dates on placed events
+        - Ordered timeline container - Initially empty, filled via placeEventAtPosition()
+        - Unsorted events container - Populated by loadEvents() on page load
+        - Game action buttons - New game, Add more, Edit mode toggle
+        - Edit mode controls - Advanced buttons visible only when edit mode enabled
+        
+        Edit Mode Controls:
+        - Wrapped in .edit-mode-only divs (hidden by default via CSS)
+        - Visible when body[data-edit-mode="on"] set by edit mode toggle
+        - Includes: Shuffle, Reset, Randomize, Clear buttons
+        - Also shows custom event input section at bottom
+    -->
     <div class="container">
+        <!-- Score Display -->
         <p id="result"></p>
+        
+        <!-- Ordered Timeline Section -->
         <h3> Ordered timeline</h3>
+        
+        <!-- 
+            Show Date Toggle - Controls date visibility on placed events
+            CSS-drawn monochrome checkbox (native checkbox hidden but accessible).
+            Positioned to right of label text via CSS padding-right.
+        -->
         <button class="show-date-toggle" id="show-date-toggle" aria-label="Show date is on" title="Show date">
             <input type="checkbox" id="show-date-checkbox" checked>
             <label for="show-date-checkbox"><i>show date</i></label>
         </button>
+        
+        <!-- 
+            Ordered Timeline Container
+            Initially empty. Events move here from unsorted area when placed.
+            Placement slots (.placement-slot) are inserted between events when one is selected.
+        -->
         <div id="ordered-timeline" class="timeline"></div>
+        
+        <!-- Unsorted Events Section -->
         <h3> Unsorted events</h3>
+        
+        <!-- 
+            Unsorted Events Container
+            Populated on page load by loadEvents() function.
+            Events are clickable and show placement slots when selected.
+            Sort order maintained by sortUnsortedEventsByIndex() via data-event-index.
+        -->
         <div id="unsorted-events" class="timeline"></div>
+        
         <br>
+        
+        <!-- 
+            Primary Game Buttons
+            - New game: Shows confirmation dialog, resets everything
+            - Add more: Adds EVENTS_TO_ADD (7) random events from pool
+            - Edit: Toggles edit mode (shows advanced controls)
+        -->
         <button id="new-game-btn" title="New game"><span class="btn-emoji">🆕</span><span class="btn-text"> New game</span></button>
         <button id="add-more-btn" title="Add more"><span class="btn-emoji">➕</span><span class="btn-text"> Add more</span></button>
         <button class="edit-mode-toggle" id="edit-mode-toggle" aria-label="Edit mode is off" title="Edit"><span class="btn-emoji">✏</span><span class="btn-text"> Edit</span></button>
+        
         <br class="edit-mode-only">
+        
+        <!-- 
+            Edit Mode Controls - Advanced game manipulation buttons
+            Hidden by default (.edit-mode-only via CSS display:none).
+            Visible when body[data-edit-mode="on"].
+            
+            Buttons:
+            - Shuffle: Randomizes visual order of unsorted events (keeps same events)
+            - Reset: Moves all ordered events back to unsorted area
+            - Randomize: Replaces unsorted events with new random events (keeps count same)
+            - Clear: Removes all unsorted events (ordered timeline untouched)
+        -->
         <div class="edit-mode-only">
             <button id="shuffle-btn" title="Shuffle"><span class="btn-emoji">🔀</span><span class="btn-text"> Shuffle</span></button>
             <button id="reset-btn" title="Reset"><span class="btn-emoji">⬇</span><span class="btn-text"> Reset</span></button>
@@ -46,6 +166,20 @@
             <button id="clear-all-btn" title="Clear"><span class="btn-emoji">🗑</span><span class="btn-text"> Clear</span></button>
         </div>
     </div>
+    
+    <!-- 
+        ═══════════════════════════════════════════════════════════════════════
+        CUSTOM EVENT INPUT - Manual event creation (Edit Mode only)
+        ═══════════════════════════════════════════════════════════════════════
+        Hidden by default (.edit-mode-only). Visible when edit mode enabled.
+        Allows users to create custom events for personalized quizzes/scenarios.
+        
+        Inputs:
+        - Event name: Free-form text input
+        - Event date: HTML5 date picker (ensures YYYY-MM-DD format)
+        
+        Button calls addEvent() function in script.js (inline onclick).
+    -->
     <div class="edit-mode-only">
         <h2>Add a new event</h2>
         <input type="text" id="event-name" placeholder="Event Name">
@@ -53,7 +187,23 @@
         <button onclick="addEvent()">Add Event</button>
     </div>
     
-    <!-- Dialog for New Game confirmation -->
+    <!-- 
+        ═══════════════════════════════════════════════════════════════════════
+        NEW GAME CONFIRMATION DIALOG - Modal overlay
+        ═══════════════════════════════════════════════════════════════════════
+        Full-screen overlay (.dialog-overlay) with centered dialog box.
+        Prevents accidental game resets by requiring confirmation.
+        
+        Behavior:
+        - Shown by: #new-game-btn click (script.js removes .hidden class)
+        - Hidden by: Yes/No button clicks, or clicking outside dialog box
+        - Yes button: Calls startNewGame() which clears everything and loads fresh events
+        - No button: Just closes dialog without action
+        
+        Accessibility:
+        - Overlay click outside dialog box also closes (common UX pattern)
+        - Handled in script.js New Game button IIFE
+    -->
     <div id="new-game-dialog" class="dialog-overlay hidden">
         <div class="dialog-box">
             <p class="dialog-message">Start a fresh new game?</p>
@@ -64,7 +214,21 @@
         </div>
     </div>
     
+    <!-- 
+        ═══════════════════════════════════════════════════════════════════════
+        SCRIPT LOADING ORDER - Critical for proper initialization
+        ═══════════════════════════════════════════════════════════════════════
+        1. lz-string.min.js (in <head>) - Must load before script.js
+        2. script.js (here at bottom) - Runs after DOM elements exist
+        
+        Why at bottom?
+        - Script references DOM elements by ID (document.getElementById)
+        - If script loads in <head>, elements don't exist yet (null references)
+        - Bottom placement ensures DOM is fully parsed before script runs
+        - DOMContentLoaded listener in script.js provides additional safety
+    -->
     <script src="script.js"></script>
+    
     <footer>
         <p class="fine-print">For entertainment purposes only. Events are scraped from Wikipedia's Selected Anniversaries pages. May not work on all browser/devices.</p>
     </footer>
